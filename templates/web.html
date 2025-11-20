@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Local FIX</title>
+    <style>
+        /* CSS สำหรับจัดรูปแบบ */
+        body {
+            font-family: 'Sukhumvit Set', sans-serif; /* แนะนำให้ใช้ฟอนต์ที่อ่านง่าย */
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0; /* สีพื้นหลังหลักของเว็บ */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* องค์ประกอบหลักของหน้าจอแอป (จำลอง) */
+        .app-container {
+            width: 375px; /* ขนาดจำลองหน้าจอมือถือ */
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 812px; /* ความสูงจำลองหน้าจอมือถือ */
+        }
+
+        /* ส่วนหัวและพื้นหลัง */
+        .header-section {
+            padding: 30px 20px;
+            color: white;
+            position: relative;
+            /* จำลองพื้นหลังภาพด้วยการไล่ระดับสีและภาพซ้อน */
+            background: linear-gradient(rgba(0, 128, 0, 0.5), rgba(0, 128, 0, 0.5)), url('battery-background.jpg'); 
+            background-size: cover;
+            background-position: center;
+            /* สีเขียวอ่อนด้านซ้าย */
+            border-left: 5px solid #a8e6a8; 
+        }
+
+        .header-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 30%;
+            height: 100%;
+            background-color: rgba(168, 230, 168, 0.5); /* สีเขียวอ่อนโปร่งแสง */
+        }
+
+        .header-section h1 {
+            font-size: 32px;
+            margin: 0;
+            font-weight: bold;
+        }
+
+        .header-section h2 {
+            font-size: 18px;
+            margin-top: 5px;
+            line-height: 1.4;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+        
+        /* ส่วนเนื้อหา */
+        .content-section {
+            flex-grow: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            position: relative;
+        }
+
+        .content-block {
+            padding: 15px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            line-height: 1.6;
+            color: #333;
+        }
+
+        /* การจัดการพื้นหลังภาพในบล็อกที่ 2 */
+        .content-block:nth-child(2) {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .content-block:nth-child(2)::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.7)), url('construction-workers.jpg');
+            background-size: cover;
+            background-position: center;
+            opacity: 0.5; /* ทำให้ภาพพื้นหลังโปร่งแสง */
+            z-index: -1;
+        }
+
+        /* รูปแบบปุ่ม */
+        .button-group {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin-top: 15px;
+            gap: 10px;
+        }
+
+        .button-link {
+            text-decoration: none;
+            color: #333;
+            text-align: center;
+            font-size: 12px;
+        }
+
+        .button-icon {
+            border: 1px solid #ccc;
+            padding: 10px 15px;
+            border-radius: 8px;
+            display: inline-block;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            font-size: 24px;
+        }
+
+        .button-icon-menu {
+            /* จำลองไอคอนเมนูเอกสาร */
+            content: '📄'; 
+        }
+
+        .button-icon-unit {
+            /* จำลองไอคอนโทรศัพท์/หน่วยงาน */
+            content: '📞'; 
+        }
+        
+        /* ข้อความปิดท้าย */
+        .footer-message {
+            text-align: center;
+            padding: 15px 20px 0;
+            font-weight: bold;
+            color: #555;
+        }
+
+        /* แถบเมนูนำทางด้านล่าง */
+        .bottom-nav {
+            display: flex;
+            justify-content: space-around;
+            border-top: 1px solid #ddd;
+            padding: 10px 0;
+            background-color: white;
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.05);
+            z-index: 10;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: #333;
+            font-size: 12px;
+        }
+
+        .nav-icon {
+            font-size: 24px;
+            margin-bottom: 3px;
+        }
+
+        .nav-item.active .nav-icon {
+            color: #008000; /* สีเขียวสำหรับไอคอนที่เลือก */
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="header-section">
+            <h1>Local FIX</h1>
+            <h2>แก้ไขปัญหาได้ด้วยตนเองและหน่วยงานท้องถิ่น</h2>
+        </div>
+
+        <div class="content-section">
+            
+            <div class="content-block">
+                หากพบปัญหาภายในบ้านที่สามารถแก้ไขเองได้ สามารถเลือกเมนูและค้นหาปัญหาที่ค้นหาคำแนะนำได้ เรามีคำแนะนำการแก้ไขปัญหาพื้นฐานไปจนถึงต้องใช้เครื่องมือในการแก้ไข
+                <div class="button-group">
+                    <a href="#" class="button-link">
+                        <span class="button-icon">📄</span>
+                        <div>เมนู</div>
+                    </a>
+                </div>
+            </div>
+
+            <div class="content-block">
+                หากปัญหาที่พบนั้นใหญ่เกินกว่าที่จะแก้ไขได้ด้วยตนเอง หรือต้องการติดต่อหน่วยงานท้องถิ่น เช่น เทศบาล การประปา การไฟฟ้า และอื่นๆ
+                <div class="button-group">
+                    <a href="#" class="button-link">
+                        <span class="button-icon">📞</span>
+                        <div>หน่วยงาน</div>
+                    </a>
+                </div>
+            </div>
+
+            <div class="footer-message">
+                หวังว่าคำแนะนำของเราจะช่วยคุณได้
+            </div>
+
+        </div>
+        
+        <div class="bottom-nav">
+            <a href="#" class="nav-item">
+                <span class="nav-icon">📄</span>
+                เมนู
+            </a>
+            <a href="#" class="nav-item active">
+                <span class="nav-icon">🏠</span>
+                หน้าหลัก
+            </a>
+            <a href="#" class="nav-item">
+                <span class="nav-icon">📞</span>
+                หน่วยงาน
+            </a>
+        </div>
+    </div>
+</body>
+</html>
+

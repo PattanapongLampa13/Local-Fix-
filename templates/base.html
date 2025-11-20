@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Local FIX App</title>
+    <style>
+        /* Base CSS: ส่วนนี้ใช้กำหนดรูปลักษณ์พื้นฐานของแอปพลิเคชัน */
+        body {
+            font-family: 'Sukhumvit Set', Tahoma, sans-serif; /* ใช้ฟอนต์ที่อ่านง่าย */
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0; /* สีพื้นหลังนอกกรอบแอป */
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* จัดให้อยู่ด้านบนของจอ (เหมือนแอปจริง) */
+            min-height: 100vh;
+        }
+
+        /* 1. App Container: กรอบจำลองหน้าจอมือถือ */
+        .app-container {
+            width: 375px; /* ขนาดจำลองหน้าจอมือถือมาตรฐาน */
+            background-color: white;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 812px; /* ความสูงจำลองหน้าจอมือถือ */
+            position: relative; /* สำคัญสำหรับแถบนำทางด้านล่าง */
+        }
+
+        /* 2. Main Content Area: พื้นที่สำหรับใส่เนื้อหาของแต่ละหน้า */
+        .main-content {
+            flex-grow: 1; /* ทำให้ส่วนนี้ขยายตัวเต็มพื้นที่ที่เหลือ */
+            overflow-y: auto; /* เปิดให้เนื้อหาเลื่อนได้เมื่อมีเนื้อหามาก */
+            padding-bottom: 70px; /* เว้นพื้นที่ด้านล่างไว้สำหรับแถบนำทาง */
+        }
+
+        /* 3. Bottom Navigation Bar: แถบนำทางด้านล่าง (ส่วน Base ที่ทุกหน้าต้องมี) */
+        .bottom-nav {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-around;
+            border-top: 1px solid #ddd;
+            padding: 10px 0;
+            background-color: white;
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.05);
+            z-index: 10;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: #333;
+            font-size: 12px;
+            min-width: 80px; /* ให้แต่ละปุ่มมีพื้นที่เท่ากัน */
+        }
+
+        .nav-icon {
+            font-size: 24px;
+            margin-bottom: 3px;
+        }
+
+        .nav-item.active .nav-icon {
+            color: #008000; /* สีเขียวสำหรับไอคอนที่เลือก */
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        
+        <div class="main-content">
+            <header>
+                <h1>Local FIX</h1>
+                <p>แก้ไขปัญหาได้ด้วยตนเองและหน่วยงานท้องถิ่น</p>
+            </header>
+            
+            <section style="padding: 20px;">
+                <p>นี่คือพื้นที่เนื้อหาหลักของหน้า Base ค่ะ</p>
+            </section>
+        </div>
+        
+        <div class="bottom-nav">
+            <a href="menu.html" class="nav-item">
+                <span class="nav-icon">📄</span>
+                เมนู
+            </a>
+            <a href="index.html" class="nav-item active">
+                <span class="nav-icon">🏠</span>
+                หน้าหลัก
+            </a>
+            <a href="contact.html" class="nav-item">
+                <span class="nav-icon">📞</span>
+                หน่วยงาน
+            </a>
+        </div>
+    </div>
+</body>
+</html>

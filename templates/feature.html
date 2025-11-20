@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Local FIX - แนะนำ</title>
+    <style>
+        /* CSS พื้นฐาน (สามารถนำ CSS จากหน้าแรกมาใช้ซ้ำได้) */
+        body {
+            font-family: 'Sukhumvit Set', sans-serif; 
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .app-container {
+            width: 375px; 
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 812px; 
+        }
+
+        /* ส่วนหัวของหน้าแนะนำ */
+        .intro-header-section {
+            padding: 20px 20px 10px;
+            color: #333;
+            position: relative;
+        }
+
+        .intro-header-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            /* จำลองพื้นหลังภาพเหมือนในรูป */
+            background: linear-gradient(rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.7)), url('tools-background.jpg');
+            background-size: cover;
+            background-position: center;
+            z-index: -1;
+        }
+
+        .intro-header-section h3 {
+            font-size: 24px;
+            margin: 0 0 10px 0;
+            font-weight: bold;
+            color: #555;
+            display: flex;
+            align-items: center;
+        }
+
+        .intro-header-section h3 span {
+            color: #008000; /* สีเขียวสำหรับไอคอนหลอดไฟ */
+            margin-left: 5px;
+        }
+
+        .category-bar {
+            background-color: #eee;
+            padding: 8px 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #555;
+            margin-top: 10px;
+            width: 90%; /* ให้สั้นลงนิดหน่อยเหมือนในรูป */
+        }
+        
+        .category-bar span:last-child {
+            font-weight: bold;
+        }
+
+        /* ส่วนรายการแนะนำ */
+        .recommendation-list {
+            flex-grow: 1;
+            padding: 10px 20px;
+            overflow-y: auto; /* ทำให้เนื้อหาสามารถเลื่อนได้ */
+        }
+
+        .recommendation-item {
+            margin-bottom: 15px;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+        }
+
+        .item-content {
+            padding: 10px 15px;
+            background-color: #008000; /* สีฟ้า/เขียวอมฟ้าสำหรับพื้นหลังหัวข้อ */
+            color: white;
+            position: relative;
+        }
+
+        .item-content h4 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .item-content p {
+            margin: 0;
+            font-size: 12px;
+            margin-top: 5px;
+            line-height: 1.4;
+        }
+
+        .item-image {
+            width: 100%;
+            height: 180px; /* กำหนดความสูงของรูปภาพ */
+            object-fit: cover;
+            display: block;
+        }
+
+        /* รูปแบบภาพสำหรับแต่ละรายการ (ใช้สีพื้นหลังแทนรูปภาพจริงในโค้ดนี้) */
+        .img-bulb { background-image: url('lightbulb-fix.jpg'); background-size: cover; background-position: center; }
+        .img-fan { background-image: url('fan-clean.jpg'); background-size: cover; background-position: center; }
+        .img-washer { background-image: url('washing-machine-fix.jpg'); background-size: cover; background-position: center; }
+
+        /* ข้อความข้อมูลเพิ่มเติม */
+        .info-link {
+            text-align: center;
+            padding: 15px 20px;
+            font-size: 14px;
+            color: #555;
+            font-weight: bold;
+        }
+
+        /* แถบเมนูนำทางด้านล่าง (นำมาจากหน้าแรก) */
+        .bottom-nav {
+            display: flex;
+            justify-content: space-around;
+            border-top: 1px solid #ddd;
+            padding: 10px 0;
+            background-color: white;
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.05);
+            z-index: 10;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: #333;
+            font-size: 12px;
+        }
+
+        .nav-icon {
+            font-size: 24px;
+            margin-bottom: 3px;
+        }
+
+        .nav-item:nth-child(1) .nav-icon {
+            color: #008000; /* สีเขียวสำหรับไอคอนเมนูที่ถูกเลือก */
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        
+        <div class="intro-header-section">
+            <h3>• แนะนำ<span>💡</span></h3>
+            <div class="category-bar">
+                <span>เครื่องใช้ไฟฟ้าและอุปกรณ์ไฟฟ้า</span>
+                <span>V</span>
+            </div>
+        </div>
+
+        <div class="recommendation-list">
+            
+            <a href="#" class="recommendation-item">
+                <div class="item-content" style="background-color: #0099ff;">
+                    <h4>หลอดไฟดับ เปลี่ยนหลอดไฟ</h4>
+                    <p>หลอดไฟเสื่อมจากการใช้งาน แต่ถ้าเปลี่ยนขั้วใช้-งานได้อยู่ สามารถทำได้</p>
+                </div>
+                <div class="item-image img-bulb"></div> 
+            </a>
+
+            <a href="#" class="recommendation-item">
+                <div class="item-content" style="background-color: #0099ff;">
+                    <h4>แกะพัดลมล้าง ทำความสะอาดพัดลม</h4>
+                    <p>พัดลมฝุ่นสกปรกสามารถแกะมาล้างทำความสะอาดเองได้ง่ายๆ</p>
+                </div>
+                <div class="item-image img-fan"></div> 
+            </a>
+
+            <a href="#" class="recommendation-item">
+                <div class="item-content" style="background-color: #0099ff;">
+                    <h4>เครื่องซักผ้ามีปัญหา</h4>
+                    <p>เครื่องซักผ้าที่อายุยังน้อย แต่เจอข้อปัญหาที่ทำได้ไม่ยาก</p>
+                </div>
+                <div class="item-image img-washer"></div> 
+            </a>
+
+        </div>
+        
+        <div class="info-link">
+            ข้อมูลเพิ่มเติมและคำแนะนำเกี่ยวกับเว็บแอป
+        </div>
+
+        <div class="bottom-nav">
+            <a href="#" class="nav-item">
+                <span class="nav-icon">📄</span>
+                เมนู
+            </a>
+            <a href="#" class="nav-item">
+                <span class="nav-icon">🏠</span>
+                หน้าหลัก
+            </a>
+            <a href="#" class="nav-item">
+                <span class="nav-icon">📞</span>
+                หน่วยงาน
+            </a>
+        </div>
+    </div>
+</body>
+</html>
