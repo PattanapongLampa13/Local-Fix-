@@ -16,7 +16,12 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from vercel import views
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("featuremenu/", views.menu, name="menu"),
+    path("web/", views.home, name="home"),
+    path("", views.home, name="home"),
+    path("contact/", views.contact, name="contact"),
 ]

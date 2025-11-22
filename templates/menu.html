@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    /* CSS for menu.html */
+    .intro-header-section {
+        padding: 20px 20px 10px;
+        color: #333;
+        position: relative;
+    }
+
+    .intro-header-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.7)), url('tools-background.jpg');
+        background-size: cover;
+        background-position: center;
+        z-index: -1;
+    }
+
+    .intro-header-section h3 {
+        font-size: 24px;
+        margin: 0 0 10px 0;
+        font-weight: bold;
+        color: #555;
+        display: flex;
+        align-items: center;
+    }
+
+    .intro-header-section h3 span {
+        color: #008000;
+        margin-left: 5px;
+    }
+
+    .category-bar {
+        background-color: #eee;
+        padding: 8px 10px;
+        border-radius: 5px;
+        font-size: 14px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: #555;
+        margin-top: 10px;
+    }
+    
+    .category-bar span:last-child {
+        font-weight: bold;
+    }
+
+    .recommendation-list {
+        padding: 10px 20px;
+        overflow-y: auto;
+    }
+
+    .recommendation-item {
+        margin-bottom: 15px;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        cursor: pointer;
+        text-decoration: none;
+        color: white;
+        display: block;
+    }
+
+    .item-content {
+        padding: 10px 15px;
+        background-color: #008000;
+    }
+
+    .item-content h4 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: bold;
+    }
+
+    .item-content p {
+        margin: 0;
+        font-size: 12px;
+        margin-top: 5px;
+        line-height: 1.4;
+    }
+
+    .item-image {
+        width: 100%;
+        height: 180px;
+        object-fit: cover;
+        display: block;
+        background-color: #e0e0e0;
+    }
+
+    .img-bulb { background-image: url('lightbulb-fix.jpg'); background-size: cover; background-position: center; }
+    .img-fan { background-image: url('fan-clean.jpg'); background-size: cover; background-position: center; }
+    .img-washer { background-image: url('washing-machine-fix.jpg'); background-size: cover; background-position: center; }
+
+    .info-link {
+        text-align: center;
+        padding: 15px 20px;
+        font-size: 14px;
+        color: #555;
+        font-weight: bold;
+    }
+</style>
+
+<div class="intro-header-section">
+    <h3>• แนะนำ<span>💡</span></h3>
+    <div class="category-bar">
+        <span>เครื่องใช้ไฟฟ้าและอุปกรณ์ไฟฟ้า</span>
+        <span>V</span>
+    </div>
+</div>
+
+<div class="recommendation-list">
+    
+    <a href="#" class="recommendation-item">
+        <div class="item-content" style="background-color: #0099ff;">
+            <h4>หลอดไฟดับ เปลี่ยนหลอดไฟ</h4>
+            <p>หลอดไฟเสื่อมจากการใช้งาน แต่ถ้าเปลี่ยนขั้วใช้-งานได้อยู่ สามารถทำได้</p>
+        </div>
+        <div class="item-image img-bulb"></div> 
+    </a>
+
+    <a href="#" class="recommendation-item">
+        <div class="item-content" style="background-color: #0099ff;">
+            <h4>แกะพัดลมล้าง ทำความสะอาดพัดลม</h4>
+            <p>พัดลมฝุ่นสกปรกสามารถแกะมาล้างทำความสะอาดเองได้ง่ายๆ</p>
+        </div>
+        <div class="item-image img-fan"></div> 
+    </a>
+
+    <a href="#" class="recommendation-item">
+        <div class="item-content" style="background-color: #0099ff;">
+            <h4>เครื่องซักผ้ามีปัญหา</h4>
+            <p>เครื่องซักผ้าที่อายุยังน้อย แต่เจอข้อปัญหาที่ทำได้ไม่ยาก</p>
+        </div>
+        <div class="item-image img-washer"></div> 
+    </a>
+
+</div>
+
+<div class="info-link">
+    ข้อมูลเพิ่มเติมและคำแนะนำเกี่ยวกับเว็บแอป
+</div>
+{% endblock %}

@@ -75,6 +75,7 @@
     <div class="app-container">
         
         <div class="main-content">
+            {% block content %}
             <header>
                 <h1>Local FIX</h1>
                 <p>แก้ไขปัญหาได้ด้วยตนเองและหน่วยงานท้องถิ่น</p>
@@ -83,18 +84,19 @@
             <section style="padding: 20px;">
                 <p>นี่คือพื้นที่เนื้อหาหลักของหน้า Base ค่ะ</p>
             </section>
+            {% endblock %}
         </div>
         
         <div class="bottom-nav">
-            <a href="menu.html" class="nav-item">
+            <a href="{% url 'menu' %}" class="nav-item">
                 <span class="nav-icon">📄</span>
                 เมนู
             </a>
-            <a href="index.html" class="nav-item active">
+            <a href="{% url 'home' %}" class="nav-item active">
                 <span class="nav-icon">🏠</span>
                 หน้าหลัก
             </a>
-            <a href="contact.html" class="nav-item">
+            <a href="{% url 'contact' %}" class="nav-item">
                 <span class="nav-icon">📞</span>
                 หน่วยงาน
             </a>
