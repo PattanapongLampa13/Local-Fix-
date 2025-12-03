@@ -159,29 +159,6 @@
         .provider-info {
             flex-grow: 1;
         }
-        
-        /* Styles for Modal (copied from issue_report_app.html) */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.5);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 50;
-        }
-        .modal-content {
-            background-color: white;
-            padding: 1.5rem;
-            border-radius: 0.5rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
-            max-width: 80%;
-            width: 300px;
-            text-align: center;
-        }
     </style>
 </head>
 <body>
@@ -215,167 +192,25 @@
             </div>
         </div>
     </div>
-    
-    <!-- Modal/Popup สำหรับข้อความสถานะ -->
-    <div id="status-modal" class="modal-overlay">
-        <div class="modal-content">
-            <p id="modal-message" class="text-lg font-medium text-gray-800 mb-4"></p>
-            <button onclick="closeModal()" class="bg-primary-blue hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg">
-                ตกลง
-            </button>
-        </div>
-    </div>
 
-    <!-- Firebase SDKs -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { 
-            getAuth, 
-            signInAnonymously, 
-            signInWithCustomToken, 
-            onAuthStateChanged 
-        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { 
-            getFirestore, 
-            addDoc, 
-            collection,
-            Timestamp 
-        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        
-        // กำหนดตัวแปรส่วนกลางสำหรับ Firebase
-        let app;
-        let db;
-        let auth;
-        let userId = 'anonymous';
-        let isAuthReady = false;
-
-        // ดึงค่า Global Variables จาก Canvas Environment
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-        
-        // Elements for Modal
-        const statusModal = document.getElementById('status-modal');
-        const modalMessage = document.getElementById('modal-message');
-
-        // ฟังก์ชันสำหรับแสดง Modal แจ้งเตือน (แทน alertCustom)
-        window.showModal = (message) => {
-            modalMessage.textContent = message;
-            statusModal.style.display = 'flex';
-        }
-
-        // ฟังก์ชันสำหรับปิด Modal
-        window.closeModal = () => {
-            statusModal.style.display = 'none';
-        }
-
-        // 1. การเริ่มต้นและตรวจสอบการรับรองความถูกต้อง (Authentication)
-        const initFirebase = async () => {
-            if (!firebaseConfig || Object.keys(firebaseConfig).length === 0) {
-                console.error('ข้อผิดพลาด: ไม่พบ Firebase Config');
-                return;
-            }
-
-            try {
-                app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
-                auth = getAuth(app);
-
-                // พยายามล็อกอินด้วย Custom Token หรือใช้ Anonymously
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                } else {
-                    await signInAnonymously(auth);
-                }
-
-                // ตรวจสอบสถานะการล็อกอิน
-                onAuthStateChanged(auth, (user) => {
-                    isAuthReady = true;
-                    if (user) {
-                        userId = user.uid;
-                    } else {
-                        userId = 'anonymous';
-                    }
-                });
-
-            } catch (error) {
-                console.error("Firebase Initialization or Sign-in Error:", error);
-            }
-        };
-
-
-        // 2. การจัดการการส่งฟอร์ม (Submit)
-        window.handleIssueReportSubmit = async (e) => {
-            e.preventDefault();
-            
-            if (!isAuthReady || userId === 'anonymous') {
-                showModal("โปรดรอสักครู่ ระบบกำลังยืนยันตัวตนผู้ใช้ก่อนส่งข้อมูล");
-                return;
-            }
-
-            const issueForm = document.getElementById('issue-report-form');
-            const submitButton = document.getElementById('report-submit-button');
-            
-            submitButton.disabled = true;
-            submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> กำลังส่ง...';
-
-            const issueType = issueForm['issue-type'].value;
-            const issueTitle = issueForm['issue-title'].value;
-            const issueDescription = issueForm['issue-description'].value;
-            
-            if (!issueType || !issueTitle || !issueDescription) {
-                showModal("โปรดกรอกข้อมูลให้ครบถ้วนก่อนส่ง");
-                submitButton.disabled = false;
-                submitButton.innerHTML = '<i class="fas fa-paper-plane mr-2"></i> ส่งเรื่องแจ้งปัญหา';
-                return;
-            }
-
-            // สร้างโครงสร้างข้อมูลสำหรับบันทึก
-            const issueData = {
-                appId: appId,
-                userId: userId,
-                issueType: issueType, // ประเภทปัญหา
-                title: issueTitle,
-                description: issueDescription,
-                status: 'Open', // สถานะเริ่มต้น
-                createdAt: Timestamp.now()
-            };
-
-            // กำหนด Collection Path สำหรับข้อมูลสาธารณะ (Public Data)
-            const collectionPath = `/artifacts/${appId}/public/data/issue_reports`;
-
-            try {
-                const docRef = await addDoc(collection(db, collectionPath), issueData);
-                
-                showModal(`แจ้งปัญหาสำเร็จ! ผู้ดูแลระบบได้รับเรื่องแล้ว หมายเลขอ้างอิง: ${docRef.id.substring(0, 8)}`);
-                issueForm.reset();
-                window.renderScreen('home'); // กลับสู่หน้าหลัก
-            } catch (error) {
-                console.error("Error adding document: ", error);
-                showModal(`การแจ้งปัญหามีข้อผิดพลาด: ${error.message}`);
-            } finally {
-                submitButton.disabled = false;
-                submitButton.innerHTML = '<i class="fas fa-paper-plane mr-2"></i> ส่งเรื่องแจ้งปัญหา';
-            }
-        };
-
-
-        // เริ่มต้น Firebase เมื่อโหลดหน้าเสร็จ
-        document.addEventListener('DOMContentLoaded', () => {
-            initFirebase();
-        });
-
-
-        // -----------------------------------------------------------------------------------
-        // UI MOCKUP LOGIC CONTINUES HERE
-        // -----------------------------------------------------------------------------------
-
+    <script>
         // Global state to track navigation history
         let navigationHistory = [];
         
         // Mock function to avoid using window.alert()
         function alertCustom(message) {
-             showModal(message);
+            console.log("Custom Alert Message:", message);
+            // In a real app, this would show a temporary toast or modal message
+            const appScreen = document.getElementById('app-screen');
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-slate-800 text-white p-4 rounded-lg shadow-xl z-50 transition-opacity duration-300';
+            alertDiv.textContent = message;
+            appScreen.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                alertDiv.classList.add('opacity-0');
+                alertDiv.addEventListener('transitionend', () => alertDiv.remove());
+            }, 2000);
         }
 
         // --- Mock Data for Si Sa Ket Agencies ---
@@ -418,55 +253,6 @@
                         heading: 'ขั้นตอนที่ 3: ตรวจสอบเบรกเกอร์',
                         detail: 'หากไม่มีอุปกรณ์เสียบอยู่เลย แต่เบรกเกอร์ยังตัด แสดงว่าตัวเบรกเกอร์เองอาจชำรุด หรือมีการลัดวงจรในสายไฟ ให้หยุดดำเนินการและโทรเรียกช่างไฟฟ้าทันที',
                         image_placeholder: 'Image Placeholder: Close up on breaker panel (รูปภาพตู้ควบคุมพร้อมคำเตือน)'
-                    }
-                ]
-            },
-            'ไฟฟ้า - ปลั๊กมีเสียงดัง/ความร้อนสูง': {
-                title: 'วิธีรับมือปลั๊กไฟมีเสียงดังหรือร้อนผิดปกติ',
-                description: 'อาการเหล่านี้บ่งบอกถึงความเสี่ยงของการลัดวงจรหรือไฟไหม้ ต้องหยุดใช้และตรวจสอบทันที',
-                safety_warning: '**คำเตือนความปลอดภัยสูงสุด** หากมีกลิ่นไหม้, ควัน, หรือเสียงดังผิดปกติ ให้ปิดเบรกเกอร์หลักของบ้านทันที และห้ามแตะต้องปลั๊ก',
-                steps: [
-                    {
-                        heading: 'ขั้นตอนที่ 1: ปิดเบรกเกอร์',
-                        detail: 'หาเบรกเกอร์ที่ควบคุมปลั๊กไฟโซนที่มีปัญหา แล้วทำการสับลงทันทีเพื่อตัดกระแสไฟฟ้า',
-                        image_placeholder: '[Image of ตู้ควบคุมไฟฟ้า]'
-                    },
-                    {
-                        heading: 'ขั้นตอนที่ 2: ตรวจสอบอุปกรณ์',
-                        detail: 'ถอดปลั๊กอุปกรณ์ที่เสียบอยู่ทั้งหมดออก ตรวจสอบว่าอุปกรณ์หรือปลั๊กพ่วงมีความเสียหาย, มีรอยไหม้, หรือไม่',
-                        image_placeholder: ''
-                    },
-                    {
-                        heading: 'ขั้นตอนที่ 3: ติดต่อช่าง',
-                        detail: 'ห้ามใช้ปลั๊กนั้นอีก หากตัวปลั๊กไฟติดผนังมีความเสียหาย (ละลาย/หลวม) ต้องเรียกช่างไฟฟ้ามาทำการเปลี่ยนปลั๊กทันที',
-                        image_placeholder: 'Image Placeholder: Calling an electrician (รูปภาพโทรศัพท์กำลังเรียกช่างไฟฟ้า)'
-                    }
-                ]
-            },
-            'ไฟฟ้า - เปลี่ยนหลอดไฟ': {
-                title: 'วิธีเปลี่ยนหลอดไฟด้วยตนเองอย่างปลอดภัย',
-                description: 'การเปลี่ยนหลอดไฟเป็นงานง่ายๆ ที่ควรทำด้วยความระมัดระวังเพื่อป้องกันอุบัติเหตุและไฟฟ้าช็อต',
-                safety_warning: '**คำเตือนความปลอดภัย** ควรปิดสวิตช์ไฟของหลอดนั้นๆ ก่อนทุกครั้ง หากหลอดร้อนให้รอจนกว่าจะเย็นลง หากหลอดแตกห้ามสัมผัสด้วยมือเปล่า',
-                steps: [
-                    {
-                        heading: 'ขั้นตอนที่ 1: ปิดสวิตช์ไฟและเตรียมพื้นที่',
-                        detail: 'ปิดสวิตช์ไฟของหลอดที่ต้องการเปลี่ยน และหากหลอดอยู่ในที่สูง ให้ใช้บันไดที่แข็งแรงและมั่นคงในการเข้าถึง',
-                        image_placeholder: ''
-                    },
-                    {
-                        heading: 'ขั้นตอนที่ 2: ถอดหลอดไฟเก่าออก',
-                        detail: 'ใส่ถุงมือเพื่อความปลอดภัย (โดยเฉพาะถ้าหลอดแตก) หมุนหลอดไฟเก่าทวนเข็มนาฬิกาอย่างเบามือเพื่อถอดออกจากขั้ว',
-                        image_placeholder: ''
-                    },
-                    {
-                        heading: 'ขั้นตอนที่ 3: ตรวจสอบขั้วและใส่หลอดใหม่',
-                        detail: 'ตรวจสอบขั้วหลอดว่าสะอาดและไม่มีรอยไหม้ จากนั้นนำหลอดไฟใหม่ใส่เข้าไปในขั้วหมุนตามเข็มนาฬิกาจนแน่นพอดี (ไม่ควรแน่นเกินไป)',
-                        image_placeholder: ''
-                    },
-                    {
-                        heading: 'ขั้นตอนที่ 4: เปิดทดสอบ',
-                        detail: 'เปิดสวิตช์ไฟเพื่อทดสอบ หากหลอดไฟติดเป็นปกติ แสดงว่าเสร็จสมบูรณ์แล้ว',
-                        image_placeholder: ''
                     }
                 ]
             },
@@ -514,6 +300,32 @@
                     }
                 ]
             },
+            'ไฟฟ้า - ปลั๊กมีเสียงดัง/ความร้อนสูง': {
+                title: 'วิธีรับมือปลั๊กไฟมีเสียงดังหรือร้อนผิดปกติ',
+                description: 'อาการเหล่านี้บ่งบอกถึงความเสี่ยงของการลัดวงจรหรือไฟไหม้ ต้องหยุดใช้และตรวจสอบทันที',
+                safety_warning: '**คำเตือนความปลอดภัยสูงสุด** หากมีกลิ่นไหม้, ควัน, หรือเสียงดังผิดปกติ ให้ปิดเบรกเกอร์หลักของบ้านทันที และห้ามแตะต้องปลั๊ก',
+                steps: [
+                    {
+                        heading: 'ขั้นตอนที่ 1: ปิดเบรกเกอร์',
+                        detail: 'หาเบรกเกอร์ที่ควบคุมปลั๊กไฟโซนที่มีปัญหา แล้วทำการสับลงทันทีเพื่อตัดกระแสไฟฟ้า',
+                        image_placeholder: '[Image of ตู้ควบคุมไฟฟ้า]'
+                    },
+                    {
+                        heading: 'ขั้นตอนที่ 2: ตรวจสอบอุปกรณ์',
+                        detail: 'ถอดปลั๊กอุปกรณ์ที่เสียบอยู่ทั้งหมดออก ตรวจสอบว่าอุปกรณ์หรือปลั๊กพ่วงมีความเสียหาย, มีรอยไหม้, หรือไม่',
+                        image_placeholder: ''
+                    },
+                    {
+                        heading: 'ขั้นตอนที่ 3: ติดต่อช่าง',
+                        detail: 'ห้ามใช้ปลั๊กนั้นอีก หากตัวปลั๊กไฟติดผนังมีความเสียหาย (ละลาย/หลวม) ต้องเรียกช่างไฟฟ้ามาทำการเปลี่ยนปลั๊กทันที',
+                        image_placeholder: 'Image Placeholder: Calling an electrician (รูปภาพโทรศัพท์กำลังเรียกช่างไฟฟ้า)'
+                    }
+                ]
+            },
+            // ************************************************
+            // * ปรับปรุงเนื้อหาสำหรับ "ปัญหาอื่นๆ - ติดต่อช่าง"
+            // * ให้เป็น "แจ้งเรื่องถึงทีมพัฒนา" (Dev-Handled)
+            // ************************************************
             'ปัญหาอื่นๆ - ติดต่อช่าง': { 
                 title: 'ปัญหาอื่นๆ: แจ้งเรื่องถึงทีมพัฒนา', // NEW TITLE: Dev-focused
                 description: 'อาการที่คุณเลือกมีความเฉพาะเจาะจง หรือไม่ตรงกับรายการที่มีอยู่ กรุณาเตรียมข้อมูลเพื่อแจ้งเรื่องให้ทีมพัฒนาทราบโดยตรง',
@@ -540,7 +352,7 @@
 
         // --- Helper functions (removed LLM functions for clean code) ---
         // Mock Registration Logic
-        window.handleRegistration = () => {
+        function handleRegistration() {
             const email = document.getElementById('reg-email').value;
             const password = document.getElementById('reg-password').value;
             const confirmPassword = document.getElementById('reg-confirm-password').value;
@@ -580,7 +392,7 @@
                 
                 // Navigate to login after a delay
                 setTimeout(() => {
-                    window.renderScreen('login');
+                    renderScreen('login');
                 }, 2000);
                 
                 button.disabled = false;
@@ -603,7 +415,7 @@
         const homeScreen = `
             <div class="text-center py-5">
                 <h1 class="text-3xl font-extrabold text-primary-blue">LocalFIX</h1>
-                <p class="text-lg text-slate-500 mt-1">ระบบแนะนำแนวทางการแก้ไขปัญหาภายในบ้านและท้องถิ่นตัวเอง</p> 
+                <p class="text-lg text-slate-500 mt-1">ระบบจัดการปัญหาบ้านอัตโนมัติ</p>
             </div>
 
             <!-- Hero Section & Primary CTA -->
@@ -685,54 +497,44 @@
         // C. หน้าเลือกอาการเฉพาะ (Diagnosis Detail) - ALL Manual/Image Links
         const diagnosisDetailScreen = (category) => {
             let nextScreen = 'advice_screen'; 
-            let problemOptions = [];
+
+            let primaryProblem = 'ไฟฟ้า - เบรกเกอร์ตัด'; // Default for electricity
+            let secondaryProblem = 'ไฟฟ้า - ปลั๊กมีเสียงดัง/ความร้อนสูง';
+            let tertiaryProblem = 'โครงสร้าง - ผนังร้าวขนาดเล็ก';
             
             // Adjust problems based on category
-            if (category === 'ไฟฟ้า') {
-                problemOptions = [
-                    { key: 'ไฟฟ้า - เบรกเกอร์ตัด', 
-                      desc: 'ปัญหาหยุดชะงักการใช้งาน (เช่น ไฟดับเฉพาะจุด, เบรกเกอร์ตัด)' },
-                    { key: 'ไฟฟ้า - ปลั๊กมีเสียงดัง/ความร้อนสูง', 
-                      desc: 'มีอาการแต่ยังพอใช้งานได้ (มีเสียง, ร้อน, รั่วซึม)' },
-                    { key: 'ไฟฟ้า - เปลี่ยนหลอดไฟ', 
-                      desc: 'คำแนะนำขั้นตอนการเปลี่ยนหลอดไฟด้วยตนเองอย่างถูกต้อง' },
-                    { key: 'ปัญหาอื่นๆ - ติดต่อช่าง', 
-                      desc: 'ส่งเรื่องโดยตรงถึงผู้ดูแลระบบ เมื่อแก้ไขไม่ได้หรือปัญหาซับซ้อน' }
-                ];
-            } else if (category === 'ประปา') {
-                problemOptions = [
-                    { key: 'ประปา - น้ำไม่ไหล', desc: 'ปัญหาหยุดชะงักการใช้งาน (เช่น น้ำไม่ไหลเลย, น้ำไหลเบามาก)' },
-                    { key: 'ประปา - ปั๊มน้ำมีเสียงดัง', desc: 'มีอาการแต่ยังพอใช้งานได้ (ปั๊มเสียงดังผิดปกติ)' },
-                    { key: 'โครงสร้าง - หลังคารั่ว', desc: 'ปัญหารั่วซึมที่ต้องมีการตรวจสอบอย่างละเอียด' },
-                    { key: 'ปัญหาอื่นๆ - ติดต่อช่าง', desc: 'ส่งเรื่องโดยตรงถึงผู้ดูแลระบบ เมื่อแก้ไขไม่ได้หรือปัญหาซับซ้อน' }
-                ];
+            if (category === 'ประปา') {
+                primaryProblem = 'ประปา - น้ำไม่ไหล';
+                secondaryProblem = 'ประปา - ปั๊มน้ำมีเสียงดัง';
+                tertiaryProblem = 'โครงสร้าง - หลังคารั่ว'; // Use this slot for a third, unique problem
             } else if (category === 'โครงสร้าง') {
-                problemOptions = [
-                    { key: 'โครงสร้าง - หลังคารั่ว', desc: 'ปัญหารั่วซึมที่ต้องมีการตรวจสอบอย่างละเอียด' },
-                    { key: 'โครงสร้าง - ผนังร้าวขนาดเล็ก', desc: 'มีรอยร้าวที่ไม่เป็นอันตรายต่อโครงสร้าง (ร้าวลายงา)' },
-                    { key: 'ปัญหาอื่นๆ - ติดต่อช่าง', desc: 'ส่งเรื่องโดยตรงถึงผู้ดูแลระบบ เมื่อแก้ไขไม่ได้หรือปัญหาซับซ้อน' }
-                ];
-            } else { // 'อื่นๆ', 'เครือข่าย', 'เครื่องใช้ไฟฟ้า'
-                 problemOptions = [
-                    { key: 'ปัญหาอื่นๆ - ติดต่อช่าง', desc: 'ปัญหาทั่วไปที่ยังไม่ทราบสาเหตุ หรืออาการอื่นๆ ที่นอกเหนือจากรายการ' },
-                    { key: 'ปัญหาอื่นๆ - ติดต่อช่าง', desc: 'หากมีข้อสงสัยอื่นๆ โปรดเลือกตัวเลือกนี้' },
-                    { key: 'ปัญหาอื่นๆ - ติดต่อช่าง', desc: 'ส่งเรื่องโดยตรงถึงผู้ดูแลระบบ เมื่อแก้ไขไม่ได้หรือปัญหาซับซ้อน' }
-                ];
+                primaryProblem = 'โครงสร้าง - หลังคารั่ว';
+                secondaryProblem = 'โครงสร้าง - ผนังร้าวขนาดเล็ก';
+                tertiaryProblem = 'ปัญหาอื่นๆ - ติดต่อช่าง'; // Direct link to general help
+            } else if (category === 'อื่นๆ' || category === 'เครือข่าย' || category === 'เครื่องใช้ไฟฟ้า') {
+                 // For complex or vague issues, direct to the generic contact screen
+                 primaryProblem = 'ปัญหาอื่นๆ - ติดต่อช่าง'; 
+                 secondaryProblem = 'ปัญหาอื่นๆ - ติดต่อช่าง';
+                 tertiaryProblem = 'ปัญหาอื่นๆ - ติดต่อช่าง';
             }
-
-            const buttonsHtml = problemOptions.map(option => `
-                <button onclick="renderScreen('${nextScreen}', {problem: '${option.key}'})" class="w-full text-left p-4 bg-white border-2 border-slate-200 hover:bg-light-blue-bg rounded-md shadow-sm transition text-lg">
-                    <span class="font-semibold text-primary-blue">⚫ ${option.key.replace('ปัญหาอื่นๆ - ติดต่อช่าง', 'ไม่พบอาการที่ต้องการ/ส่งเรื่องซับซ้อน')}</span>
-                    <p class="text-sm text-slate-500 mt-1">${option.desc}</p>
-                </button>
-            `).join('');
 
 
             return `
                 <h2 class="text-2xl font-bold mb-5 text-primary-blue">ขั้นตอนที่ 2: เลือกอาการเฉพาะ (${category})</h2>
                 <p class="text-base text-slate-600 mb-4">เลือกอาการที่ใกล้เคียงที่สุด เพื่อรับคำแนะนำพร้อมรูปภาพประกอบ</p>
                 <div class="space-y-3">
-                    ${buttonsHtml}
+                    <button onclick="renderScreen('${nextScreen}', {problem: '${primaryProblem}'})" class="w-full text-left p-4 bg-white border-2 border-slate-200 hover:bg-light-blue-bg rounded-md shadow-sm transition text-lg">
+                        <span class="font-semibold text-primary-blue">⚫ ${primaryProblem}</span>
+                        <p class="text-sm text-slate-500 mt-1">ปัญหาหยุดชะงักการใช้งาน (เช่น ไฟดับเฉพาะจุด, น้ำไม่ไหล)</p>
+                    </button>
+                    <button onclick="renderScreen('${nextScreen}', {problem: '${secondaryProblem}'})" class="w-full text-left p-4 bg-white border-2 border-slate-200 hover:bg-light-blue-bg rounded-md shadow-sm transition text-lg">
+                        <span class="font-semibold text-primary-blue">⚫ ${secondaryProblem}</span>
+                        <p class="text-sm text-slate-500 mt-1">มีอาการแต่ยังพอใช้งานได้ (มีเสียง, ร้อน, รั่วซึม)</p>
+                    </button>
+                    <button onclick="renderScreen('${nextScreen}', {problem: '${tertiaryProblem}'})" class="w-full text-left p-4 bg-white border-2 border-slate-200 hover:bg-light-blue-bg rounded-md shadow-sm transition text-lg">
+                        <span class="font-semibold text-primary-blue">⚫ ไม่พบอาการที่ต้องการ / ความเสียหายภายนอก</span> 
+                        <p class="text-sm text-slate-500 mt-1">ส่งเรื่องโดยตรงถึงทีมพัฒนาเพื่อรับการตรวจสอบ (Dev-Handled)</p> <!-- UPDATED TEXT -->
+                    </button>
                 </div>
             `;
         };
@@ -763,12 +565,12 @@
             let fallbackButton = '';
             let fallbackTitle = 'ขั้นตอนไม่สำเร็จ?';
 
-            if (problemKey.includes('ปัญหาอื่นๆ')) {
-                 // **UPDATED: Direct to Report Form Screen**
+            if (problemKey === 'ปัญหาอื่นๆ - ติดต่อช่าง') {
+                 // For Dev-Handled issues
                  fallbackTitle = 'ต้องการแจ้งเรื่อง?';
                  fallbackButton = `
-                     <button onclick="renderScreen('report_issue_form', {problem: '${problemKey}'})" class="w-full bg-primary-blue hover:opacity-90 text-white font-bold py-3 rounded-md transition shadow text-lg">
-                         <i class="fas fa-code-branch mr-2"></i> ส่งเรื่องถึงผู้ดูแลระบบ
+                     <button onclick="alertCustom('✅ ส่งเรื่องถึงทีมพัฒนาเรียบร้อยแล้ว! ขอบคุณสำหรับข้อมูล');" class="w-full bg-primary-blue hover:opacity-90 text-white font-bold py-3 rounded-md transition shadow text-lg">
+                         <i class="fas fa-code-branch mr-2"></i> ส่งเรื่องถึงทีมพัฒนา (Dev)
                      </button>
                  `;
             } else {
@@ -801,7 +603,7 @@
         const relevantAgenciesScreen = () => {
             const location = 'ศรีสะเกษ';
 
-            // Function to generate card HTML (Button Removed)
+            // Function to generate card HTML
             const generateCardHtml = (p) => `
                 <div class="provider-card">
                     <img src="${p.logo_url}" alt="Logo" class="w-12 h-12 object-cover rounded-md shadow-sm border border-slate-200 flex-shrink-0">
@@ -810,6 +612,9 @@
                         <p class="text-base mt-1"><i class="fas fa-phone mr-2 text-accent-yellow"></i> **เบอร์โทร:** ${p.phone}</p>
                         <p class="text-sm text-slate-600"><i class="fas fa-location-dot mr-2 text-accent-yellow"></i> **ที่อยู่:** ${p.address}</p>
                         <p class="text-sm italic text-slate-500 mt-2">${p.detail}</p>
+                        <button onclick="window.location.href='tel:${p.phone}'" class="mt-3 w-full bg-accent-yellow hover:opacity-90 text-primary-blue font-semibold py-2 rounded-md text-base">
+                            <i class="fas fa-phone-alt mr-2"></i> โทรติดต่อทันที
+                        </button>
                     </div>
                 </div>
             `;
@@ -908,63 +713,6 @@
                 <p class="text-sm text-slate-600">ยังไม่มีบัญชี? <a href="#" onclick="renderScreen('register')" class="text-primary-blue font-semibold hover:underline">สมัครสมาชิก</a></p>
             </div>
         `;
-        
-        // H. หน้าฟอร์มแจ้งปัญหา (Report Issue Form) - NEW SCREEN
-        const reportFormScreen = (problemKey) => {
-            const defaultTitle = problemKey.includes('ปัญหาอื่นๆ') ? 'ปัญหาซับซ้อน/ไม่พบอาการในรายการ' : (manualSolutions[problemKey]?.title || 'เรื่องทั่วไป');
-            const defaultType = problemKey.includes('ปัญหาอื่นๆ') ? 'cannot_fix' : 'general_question';
-
-            return `
-                <h2 class="text-2xl font-bold mb-5 text-primary-blue">แบบฟอร์มแจ้งเรื่องถึงผู้ดูแลระบบ</h2>
-                <p class="text-base text-slate-600 mb-6">กรุณากรอกรายละเอียดของปัญหาหรือข้อเสนอแนะที่ต้องการแจ้ง</p>
-                
-                <form id="issue-report-form" onsubmit="event.preventDefault(); handleIssueReportSubmit(event);" class="space-y-4">
-                    
-                    <!-- ประเภทของปัญหา -->
-                    <div class="mb-4">
-                        <label for="issue-type" class="block text-sm font-medium text-primary-blue mb-2">ประเภทของปัญหา:</label>
-                        <select id="issue-type" name="issue-type" required
-                                class="w-full p-3 border border-slate-300 rounded-md focus:ring-primary-blue focus:border-primary-blue transition duration-150">
-                            <option value="cannot_fix" ${defaultType === 'cannot_fix' ? 'selected' : ''}>แก้ปัญหาไม่ได้/ติดขัดอย่างรุนแรง</option>
-                            <option value="needs_modification">ต้องการให้แก้ไข/เพิ่มฟีเจอร์</option>
-                            <option value="minor_bug">พบข้อผิดพลาดเล็กน้อย (Bug)</option>
-                            <option value="general_question" ${defaultType === 'general_question' ? 'selected' : ''}>คำถามทั่วไป/ข้อเสนอแนะ</option>
-                            <option value="no_problem">ไม่มีปัญหา (ใช้เพื่อแจ้งว่าทุกอย่างเรียบร้อย)</option>
-                        </select>
-                    </div>
-
-                    <!-- หัวข้อเรื่อง -->
-                    <div class="mb-4">
-                        <label for="issue-title" class="block text-sm font-medium text-primary-blue mb-2">หัวข้อเรื่อง (สั้นๆ):</label>
-                        <input type="text" id="issue-title" name="issue-title" required maxlength="100"
-                               value="${defaultTitle}"
-                               placeholder="เช่น: ปุ่มบันทึกไม่ทำงาน"
-                               class="w-full p-3 border border-slate-300 rounded-md focus:ring-primary-blue focus:border-primary-blue transition duration-150">
-                    </div>
-
-                    <!-- รายละเอียด -->
-                    <div class="mb-6">
-                        <label for="issue-description" class="block text-sm font-medium text-primary-blue mb-2">รายละเอียดปัญหา:</label>
-                        <textarea id="issue-description" name="issue-description" rows="5" required
-                                  placeholder="โปรดอธิบายปัญหาหรือข้อเสนอแนะอย่างละเอียด พร้อมขั้นตอนที่ทำมาแล้ว"
-                                  class="w-full p-3 border border-slate-300 rounded-md focus:ring-primary-blue focus:border-primary-blue transition duration-150 resize-y"></textarea>
-                    </div>
-
-                    <div class="flex justify-between items-center">
-                        <button type="button" onclick="goBack()"
-                                class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-3 px-4 rounded-md 
-                                       transition duration-300">
-                            <i class="fas fa-undo mr-2"></i> ย้อนกลับ
-                        </button>
-                        <button type="submit" id="report-submit-button"
-                                class="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-md 
-                                       transition duration-300 ease-in-out">
-                            <i class="fas fa-paper-plane mr-2"></i> ส่งเรื่องแจ้งปัญหา
-                        </button>
-                    </div>
-                </form>
-            `;
-        };
 
 
         // --- 3. Rendering and Navigation Logic (Pointer/Interaction) ---
@@ -986,10 +734,10 @@
             }
         }
 
-        // ทำให้ renderScreen เป็น Global (Fix for ReferenceError)
-        window.renderScreen = (screenName, data = {}) => {
+        function renderScreen(screenName, data = {}) {
             let html = '';
             let title = '';
+            let isPrimaryNav = navItems.some(item => item.id === screenName);
             let screenData = data; 
 
             switch (screenName) {
@@ -1022,11 +770,6 @@
                     html = loginScreen;
                     title = 'เข้าสู่ระบบ';
                     break;
-                // **NEW CASE:** Handle the report issue form screen
-                case 'report_issue_form':
-                    html = reportFormScreen(data.problem || '');
-                    title = 'แบบฟอร์มแจ้งปัญหา';
-                    break;
                 default:
                     html = `<div class="p-4"><h2>Error: Screen Not Found</h2></div>`;
                     title = 'Error';
@@ -1049,7 +792,7 @@
             const activeNav = document.querySelector(`.nav-item[onclick*="'${screenName}'"]`);
             if (activeNav) {
                 activeNav.classList.add('active');
-            } else if (['diagnosis_detail', 'advice_screen', 'report_issue_form'].includes(screenName)) {
+            } else if (screenName === 'diagnosis_detail' || screenName === 'advice_screen') {
                  // Keep 'diagnose' active for all diagnosis sub-paths
                  document.querySelector(`.nav-item[onclick*="'diagnose'"]`)?.classList.add('active');
             } else if (screenName === 'register' || screenName === 'login') {
@@ -1058,19 +801,18 @@
             }
         }
 
-        // ทำให้ goBack เป็น Global (Fix for ReferenceError)
-        window.goBack = () => {
+        function goBack() {
             if (navigationHistory.length > 1) {
                 navigationHistory.pop(); 
                 const previousScreen = navigationHistory[navigationHistory.length - 1];
                 navigationHistory.pop();
-                window.renderScreen(previousScreen.name, previousScreen.data);
+                renderScreen(previousScreen.name, previousScreen.data);
             }
         }
 
         // Initialize the app on the home screen
         document.addEventListener('DOMContentLoaded', () => {
-            window.renderScreen('home');
+            renderScreen('home');
         });
     </script>
 </body>
