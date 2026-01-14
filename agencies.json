@@ -1,0 +1,30 @@
+{
+  "agencies": [
+    {
+      "agencyId": "AG001",
+      "username": "police_station_01",
+      "password": "hashed_password_here",
+      "agencyName": "สถานีตำรวจเมือง",
+      "agencyType": "police",
+      "contactPerson": "พ.ต.ท. สมชาย ใจดี",
+      "phone": "021234567",
+      "email": "station01@agency.go.th",
+      "address": "123 ถนนหลัก เขตเมือง",
+      "status": "active",
+      "createdAt": "2026-01-10T08:00:00Z"
+    },
+    {
+      "agencyId": "AG002",
+      "username": "municipality_01",
+      "password": "hashed_password_here",
+      "agencyName": "เทศบาลเมือง",
+      "agencyType": "municipality",
+      "contactPerson": "นางสาวอรทัย ดีงาม",
+      "phone": "029876543",
+      "email": "cityhall@agency.go.th",
+      "address": "99 ถนนราชการ",
+      "status": "active",
+      "createdAt": "2026-01-12T14:20:00Z"
+    }
+  ]
+}

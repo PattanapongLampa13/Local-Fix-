@@ -1,0 +1,24 @@
+{
+  "admins": [
+    {
+      "adminId": "ADM001",
+      "username": "superadmin",
+      "password": "hashed_password_here",
+      "fullName": "ผู้ดูแลระบบหลัก",
+      "role": "super_admin",
+      "email": "admin@example.com",
+      "status": "active",
+      "createdAt": "2026-01-01T10:00:00Z"
+    },
+    {
+      "adminId": "ADM002",
+      "username": "admin01",
+      "password": "hashed_password_here",
+      "fullName": "ผู้ดูแลระบบ",
+      "role": "admin",
+      "email": "admin01@example.com",
+      "status": "active",
+      "createdAt": "2026-01-05T09:30:00Z"
+    }
+  ]
+}

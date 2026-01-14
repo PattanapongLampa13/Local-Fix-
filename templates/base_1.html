@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LocalFIX: HCI Web App Mockup (PEA Theme with Manual Content)</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        /* Custom Font for Thai Readability - Retain Sarabun */
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&display=swap');
+        
+        /* PEA Theme Colors */
+        :root {
+            --primary-blue: #003366; /* Navy Blue - Main Header, CTA Background */
+            --accent-yellow: #FFCC00; /* Gold Yellow - Highlight/Action Color */
+            --light-blue-bg: #E6F0F8; /* Light Blue - Background for steps/cards */
+            --text-dark: #1e293b;
+        }
+
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: #f1f5f9; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh; /* Ensure body takes full height */
+        }
+        
+        .app-container {
+            width: 100%;
+            max-width: 420px; 
+            height: 98vh; /* ADJUSTED: Taller UI for mobile view */
+            min-height: 600px;
+            background: #ffffff;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); 
+            border-radius: 8px; 
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+        }
+
+        /* Responsive adjustments for tablets and desktops */
+        @media (min-width: 768px) { /* Tablet size */
+            .app-container {
+                max-width: 768px;
+                height: 95vh;
+                border-radius: 12px;
+            }
+        }
+
+        @media (min-width: 1024px) { /* Desktop size */
+            .app-container {
+                max-width: 1024px;
+            }
+        }
+        
+        /* Fixed Top Header Bar - Use Primary Blue */
+        .header-bar {
+            background-color: var(--primary-blue);
+            color: white;
+            padding: 12px 20px;
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            z-index: 5;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+        }
+        .back-button {
+            cursor: pointer;
+            margin-right: 15px;
+            font-size: 20px;
+        }
+
+        /* Fixed Bottom Navigation Bar - Use White/Light Blue */
+        .bottom-nav {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            height: 60px;
+            border-top: 2px solid var(--light-blue-bg);
+            background-color: #fff;
+            position: sticky;
+            bottom: 0;
+            z-index: 10;
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: var(--text-dark);
+            opacity: 0.6;
+            transition: opacity 0.2s;
+            padding: 5px;
+        }
+        .nav-item.active {
+            color: var(--primary-blue); 
+            opacity: 1;
+            border-top: 3px solid var(--primary-blue);
+            margin-top: -3px;
+        }
+        .nav-item i {
+            font-size: 20px;
+            margin-bottom: 2px;
+        }
+
+
+        /* Category Icons - High Contrast */
+        .category-icon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 15px 5px;
+            text-align: center;
+            border: 1px solid #ddd;
+            background-color: #fff;
+            border-radius: 8px; 
+            cursor: pointer;
+            font-size: 30px;
+        }
+        .category-icon:hover {
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+        }
+        .category-icon span {
+            margin-top: 5px;
+        }
+
+
+        /* DIY Step Style - Use Light Blue Background */
+        .diy-step {
+            padding: 15px;
+            border-left: 5px solid var(--primary-blue);
+            background-color: var(--light-blue-bg);
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+        
+        /* Safety Warning - Retain Red for High Alert */
+        .safety-warning {
+            background-color: #fef2f2;
+            border: 2px solid #ef4444;
+            color: #ef4444;
+            padding: 15px;
+            border-radius: 4px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        
+        /* Text Colors */
+        h1, h2, h3 { color: var(--text-dark); }
+        .text-primary-blue { color: var(--primary-blue); }
+        .bg-accent-yellow { background-color: var(--accent-yellow); }
+
+        /* Provider Card Specific Styles */
+        .provider-card {
+            border-left: 5px solid var(--accent-yellow);
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            margin-bottom: 15px;
+            display: flex;
+            gap: 15px; /* Added gap for layout */
+        }
+
+        .provider-info {
+            flex-grow: 1;
+        }
+        
+        /* Styles for Modal (copied from issue_report_app.html) */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+            max-width: 80%;
+            width: 300px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- Header Placeholder -->
+        <div id="app-header" class="header-bar hidden"></div>
+
+        <!-- Main Content Area -->
+        <div id="app-screen" class="flex-grow p-5 overflow-y-auto">
+            <!-- Content will be rendered here -->
+        </div>
+
+        <!-- Bottom Navigation Bar (Footer Menu) -->
+        <div class="bottom-nav">
+            <div class="nav-item active" onclick="renderScreen('home', this)">
+                <i class="fas fa-home"></i>
+                <span>หน้าหลัก</span>
+            </div>
+            <div class="nav-item" onclick="renderScreen('diagnose', this)">
+                <i class="fas fa-wrench"></i>
+                <span>แจ้งซ่อม</span>
+            </div>
+            <div class="nav-item" onclick="renderScreen('relevant_agencies', this)">
+                <i class="fas fa-phone-volume"></i>
+                <span>หน่วยงานที่เกี่ยวข้อง</span>
+            </div>
+            <div class="nav-item" onclick="renderScreen('profile', this)">
+                <i class="fas fa-user"></i>
+                <span>บัญชี</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal/Popup สำหรับข้อความสถานะ -->
+    <div id="status-modal" class="modal-overlay">
+        <div class="modal-content">
+            <p id="modal-message" class="text-lg font-medium text-gray-800 mb-4"></p>
+            <button onclick="closeModal()" class="bg-primary-blue hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg">
+                ตกลง
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal for requiring sign-up -->
+    <div id="signup-required-modal" class="modal-overlay">
+        <div class="modal-content">
+            <p class="text-lg font-medium text-gray-800 mb-4">สมัครบัญชีก่อน</p>
+            <div class="flex justify-center gap-4">
+                <button onclick="closeSignupModal()" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-4 rounded-lg">
+                    ปิด
+                </button>
+                <button onclick="navigateToSignup()" class="bg-primary-blue hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg">
+                    ไปหน้าสมัครบัญชี
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { 
+            getAuth, 
+            signInAnonymously, 
+            signInWithCustomToken, 
+            onAuthStateChanged 
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { 
+            getFirestore, 
+            addDoc, 
+            collection,
+            Timestamp 
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        
+        // กำหนดตัวแปรส่วนกลางสำหรับ Firebase
+        let app;
+        let db;
+        let auth;
+        let userId = 'anonymous';
+        let isAuthReady = false;
+        let isAnonymousUser = true;
+
+        // ดึงค่า Global Variables จาก Canvas Environment
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        
+        // Elements for Modal
+        const statusModal = document.getElementById('status-modal');
+        const modalMessage = document.getElementById('modal-message');
+        const signupModal = document.getElementById('signup-required-modal');
+
+        // ฟังก์ชันสำหรับแสดง Modal แจ้งเตือน (แทน alertCustom)
+        window.showModal = (message) => {
+            modalMessage.textContent = message;
+            statusModal.style.display = 'flex';
+        }
+
+        // ฟังก์ชันสำหรับปิด Modal
+        window.closeModal = () => {
+            statusModal.style.display = 'none';
+        }
+
+        // Function to show signup modal
+        window.showSignupRequiredModal = () => {
+            signupModal.style.display = 'flex';
+        }
+
+        // Function to close signup modal
+        window.closeSignupModal = () => {
+            signupModal.style.display = 'none';
+        }
+        
+        // Function to navigate to registration
+        window.navigateToSignup = () => {
+            closeSignupModal();
+            renderScreen('register');
+        }
+
+        // 1. การเริ่มต้นและตรวจสอบการรับรองความถูกต้อง (Authentication)
+        const initFirebase = async () => {
+            if (!firebaseConfig || Object.keys(firebaseConfig).length === 0) {
+                console.error('ข้อผิดพลาด: ไม่พบ Firebase Config');
+                return;
+            }
+
+            try {
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+
+                // พยายามล็อกอินด้วย Custom Token หรือใช้ Anonymously
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                // ตรวจสอบสถานะการล็อกอิน
+                onAuthStateChanged(auth, (user) => {
+                    isAuthReady = true;
+                    if (user) {
+                        userId = user.uid;
+                        isAnonymousUser = user.isAnonymous;
+                    } else {
+                        userId = 'anonymous';
+                        isAnonymousUser = true;
+                    }
+                });
+
+            } catch (error) {
+                console.error("Firebase Initialization or Sign-in Error:", error);
+            }
+        };
+
+
+        // 2. การจัดการการส่งฟอร์ม (Submit)
+        window.handleIssueReportSubmit = async (e) => {
+            e.preventDefault();
+
+            if (!isAuthReady) {
+                showModal("โปรดรอสักครู่ ระบบกำลังยืนยันตัวตนผู้ใช้...");
+                return;
+            }
+            
+            if (isAnonymousUser) {
+                showSignupRequiredModal();
+                return;
+            }
+
+            const issueForm = document.getElementById('issue-report-form');
+            const submitButton = document.getElementById('report-submit-button');
+            
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> กำลังส่ง...';
+
+            const issueType = issueForm['issue-type'].value;
+            const issueTitle = issueForm['issue-title'].value;
+            const issueDescription = issueForm['issue-description'].value;
+            
+            if (!issueType || !issueTitle || !issueDescription) {
+                showModal("โปรดกรอกข้อมูลให้ครบถ้วนก่อนส่ง");
+                submitButton.disabled = false;
+                submitButton.innerHTML = '<i class="fas fa-paper-plane mr-2"></i> ส่งเรื่องแจ้งปัญหา';
+                return;
+            }
+
+            // สร้างโครงสร้างข้อมูลสำหรับบันทึก
+            const issueData = {
+                appId: appId,
+                userId: userId,
+                issueType: issueType, // ประเภทปัญหา
+                title: issueTitle,
+                description: issueDescription,
+                status: 'Open', // สถานะเริ่มต้น
+                createdAt: Timestamp.now()
+            };
+
+            // กำหนด Collection Path สำหรับข้อมูลสาธารณะ (Public Data)
+            const collectionPath = `/artifacts/${appId}/public/data/issue_reports`;
+
+            try {
+                const docRef = await addDoc(collection(db, collectionPath), issueData);
+                
+                showModal(`แจ้งปัญหาสำเร็จ! ผู้ดูแลระบบได้รับเรื่องแล้ว หมายเลขอ้างอิง: ${docRef.id.substring(0, 8)}`);
+                issueForm.reset();
+                window.renderScreen('home'); // กลับสู่หน้าหลัก
+            } catch (error) {
+                console.error("Error adding document: ", error);
+                showModal(`การแจ้งปัญหามีข้อผิดพลาด: ${error.message}`);
+            } finally {
+                submitButton.disabled = false;
+                submitButton.innerHTML = '<i class="fas fa-paper-plane mr-2"></i> ส่งเรื่องแจ้งปัญหา';
+            }
+        };
+
+
+        // เริ่มต้น Firebase เมื่อโหลดหน้าเสร็จ
+        document.addEventListener('DOMContentLoaded', () => {
+            initFirebase();
+        });
+
+
+        // -----------------------------------------------------------------------------------
+        // UI MOCKUP LOGIC CONTINUES HERE
+        // -----------------------------------------------------------------------------------
+
+        // Global state to track navigation history
+        let navigationHistory = [];
+        
+        // Mock function to avoid using window.alert()
+        function alertCustom(message) {
+             showModal(message);
+        }
+
+        // --- Mock Data for Si Sa Ket Agencies ---
+        const governmentAgencies = [
+            { id: 1, name: "การไฟฟ้าส่วนภูมิภาค (PEA) ศรีสะเกษ", type: "ไฟฟ้า", phone: "1129", address: "ถ.อุบลราชธานี, อ.เมือง, ศรีสะเกษ", detail: "หน่วยงานหลักด้านระบบไฟฟ้า ให้บริการแจ้งเหตุไฟฟ้าดับ 24 ชม.", logo_url: "https://placehold.co/50x50/E6F0F8/003366?text=PEA" },
+            { id: 2, name: "การประปาส่วนภูมิภาค (PWA) ศรีสะเกษ", type: "ประปา", phone: "1662", address: "ถ.กสิกร, อ.เมือง, ศรีสะเกษ", detail: "รับแจ้งเหตุท่อแตก/น้ำไม่ไหล และการติดตั้งมิเตอร์น้ำ", logo_url: "https://placehold.co/50x50/E6F0F8/003366?text=PWA" },
+            { id: 3, name: "ศูนย์บริการเครือข่าย TOT ศรีสะเกษ", type: "เครือข่าย/อินเทอร์เน็ต", phone: "1100", address: "ถ.วันดี, อ.เมือง, ศรีสะเกษ", detail: "ติดต่อสอบถามปัญหาอินเทอร์เน็ตและโทรศัพท์พื้นฐาน", logo_url: "https://placehold.co/50x50/E6F0F8/003366?text=TOT" }
+        ];
+        
+        const privateShops = [
+            { 
+                id: 101, 
+                name: "ร้านช่างทางไปมหาวิทยาลัยใกล้ร้านอีสานชาบู", 
+                type: "ช่างซ่อมรถจักรยานยนต์/เครื่องยนต์", 
+                phone: "08x-xxx-xxxx", 
+                address: "อ.เมือง, ศรีสะเกษ (ใกล้ ม.ราชภัฏศรีสะเกษ)", 
+                detail: "รับซ่อมมอเตอร์ไซค์ เปลี่ยนถ่ายน้ำมันเครื่อง และอะไหล่ทั่วไป", 
+                logo_url: "https://placehold.co/50x50/E6F0F8/003366?text=Shop" 
+            }
+        ];
+
+        // --- Mock Data for Manual, Image-Required Solutions (Expanded) ---
+        const manualSolutions = {
+            'ไฟฟ้า - เบรกเกอร์ตัด': {
+                title: 'วิธีแก้ปัญหาเบรกเกอร์ตัดเอง (เฉพาะโซน)',
+                description: 'ปัญหาเบรกเกอร์ตัดบ่อยอาจเกิดจากการใช้ไฟฟ้าเกิน หรืออุปกรณ์ชำรุด โปรดทำตามขั้นตอนเหล่านี้อย่างระมัดระวัง',
+                safety_warning: '**คำเตือนความปลอดภัย** โปรดปิดสวิตช์ไฟหลักก่อนดำเนินการใดๆ และหากไม่แน่ใจ ควรเรียกช่างมืออาชีพ',
+                steps: [
+                    {
+                        heading: 'ขั้นตอนที่ 1: ตรวจสอบอุปกรณ์ที่เชื่อมต่อ',
+                        detail: 'ถอดปลั๊กอุปกรณ์ไฟฟ้าทั้งหมดที่เชื่อมต่อกับโซนที่มีปัญหาออก เพื่อหาว่าเกิดจากอุปกรณ์ตัวใดตัวหนึ่งหรือไม่ จากนั้นลองยกเบรกเกอร์ขึ้นใหม่',
+                        image_placeholder: 'Image Placeholder: Unplugging appliances (รูปภาพประกอบการถอดปลั๊ก)'
+                    },
+                    {
+                        heading: 'ขั้นตอนที่ 2: ตรวจสอบโหลดที่เกิน',
+                        detail: 'หากสามารถยกเบรกเกอร์ได้สำเร็จ ให้เริ่มเสียบปลั๊กอุปกรณ์ทีละชิ้น หากเสียบชิ้นใดแล้วเบรกเกอร์ตัดอีกครั้ง แสดงว่าอุปกรณ์นั้นอาจชำรุดหรือใช้ไฟเกินขนาดวงจร',
+                        image_placeholder: 'Image Placeholder: Checking circuit load (รูปภาพประกอบการเสียบปลั๊กทีละชิ้น)'
+                    },
+                    {
+                        heading: 'ขั้นตอนที่ 3: ตรวจสอบเบรกเกอร์',
+                        detail: 'หากไม่มีอุปกรณ์เสียบอยู่เลย แต่เบรกเกอร์ยังตัด แสดงว่าตัวเบรกเกอร์เองอาจชำรุด หรือมีการลัดวงจรในสายไฟ ให้หยุดดำเนินการและโทรเรียกช่างไฟฟ้าทันที',
+                        image_placeholder: 'Image Placeholder: Close up on breaker panel (รูปภาพตู้ควบคุมพร้อมคำเตือน)'
+                    }
+                ]
+            },
+            'ไฟฟ้า - ปลั๊กมีเสียงดัง/ความร้อนสูง': {
+                title: 'วิธีรับมือปลั๊กไฟมีเสียงดังหรือร้อนผิดปกติ',
+                description: 'อาการเหล่านี้บ่งบอกถึงความเสี่ยงของการลัดวงจรหรือไฟไหม้ ต้องหยุดใช้และตรวจสอบทันที',
+                safety_warning: '**คำเตือนความปลอดภัยสูงสุด** หากมีกลิ่นไหม้, ควัน, หรือเสียงดังผิดปกติ ให้ปิดเบรกเกอร์หลักของบ้านทันที และห้ามแตะต้องปลั๊ก',
+                steps: [
+                    {
+                        heading: 'ขั้นตอนที่ 1: ปิดเบรกเกอร์',
+                        detail: 'หาเบรกเกอร์ที่ควบคุมปลั๊กไฟโซนที่มีปัญหา แล้วทำการสับลงทันทีเพื่อตัดกระแสไฟฟ้า',
+                        image_placeholder: '[Image of ตู้ควบคุมไฟฟ้า]'
+                    },
+                    {
+                        heading: 'ขั้นตอนที่ 2: ตรวจสอบอุปกรณ์',
+                        detail: 'ถอดปลั๊กอุปกรณ์ที่เสียบอยู่ทั้งหมดออก ตรวจสอบว่าอุปกรณ์หรือปลั๊กพ่วงมีความเสียหาย, มีรอยไหม้, หรือไม่',
+                        image_placeholder: ''
+                    },
+                    {
+                        heading: 'ขั้นตอนที่ 3: ติดต่อช่าง',
+                        detail: 'ห้ามใช้ปลั๊กนั้นอีก หากตัวปลั๊กไฟติดผนังมีความเสียหาย (ละลาย/หลวม) ต้องเรียกช่างไฟฟ้ามาทำการเปลี่ยนปลั๊กทันที',
+                        image_placeholder: 'Image Placeholder: Calling an electrician (รูปภาพโทรศัพท์กำลังเรียกช่างไฟฟ้า)'
+                    }
+                ]
+            },
+            'ไฟฟ้า - เปลี่ยนหลอดไฟ': {
+                title: 'วิธีเปลี่ยนหลอดไฟด้วยตนเองอย่างปลอดภัย',
+                description: 'การเปลี่ยนหลอดไฟเป็นงานง่ายๆ ที่ควรทำด้วยความระมัดระวังเพื่อป้องกันอุบัติเหตุและไฟฟ้าช็อต',
+                safety_warning: '**คำเตือนความปลอดภัย** ควรปิดสวิตช์ไฟของหลอดนั้นๆ ก่อนทุกครั้ง หากหลอดร้อนให้รอจนกว่าจะเย็นลง หากหลอดแตกห้ามสัมผัสด้วยมือเปล่า',
+                steps: [
+                    {
+                        heading: 'ขั้นตอนที่ 1: ปิดสวิตช์ไฟและเตรียมพื้นที่',
+                        detail: 'ปิดสวิตช์ไฟของหลอดที่ต้องการเปลี่ยน และหากหลอดอยู่ในที่สูง ให้ใช้บันไดที่แข็งแรงและมั่นคงในการเข้าถึง',
+                        image_placeholder: ''
+                    },
+                    {
+                        heading: 'ขั้นตอนที่ 2: ถอดหลอดไฟเก่าออก',
+                        detail: 'ใส่ถุงมือเพื่อความปลอดภัย (โดยเฉพาะถ้าหลอดแตก) หมุนหลอดไฟเก่าทวนเข็มนาฬิกาอย่างเบามือเพื่อถอดออกจากขั้ว',
+                        image_placeholder: ''
+                    },
+                    {
+                        heading: 'ขั้นตอนที่ 3: ตรวจสอบขั้วและใส่หลอดใหม่',
+                        detail: 'ตรวจสอบขั้วหลอดว่าสะอาดและไม่มีรอยไหม้ จากนั้นนำหลอดไฟใหม่ใส่เข้าไปในขั้วหมุนตามเข็มนาฬิกาจนแน่นพอดี (ไม่ควรแน่นเกินไป)',
+                        image_placeholder: ''
+                    },
+                    {
+                        heading: 'ขั้นตอนที่ 4: เปิดทดสอบ',
+                        detail: 'เปิดสวิตช์ไฟเพื่อทดสอบ หากหลอดไฟติดเป็นปกติ แสดงว่าเสร็จสมบูรณ์แล้ว',
+                        image_placeholder: ''
+                    }
+                ]
+            },
+            'ประปา - น้ำไม่ไหล': {
+                title: 'วิธีแก้ไขปัญหาน้ำประปาไม่ไหลเบื้องต้น',
+                description: 'ปัญหาน้ำไม่ไหลอาจเกิดจากปั๊มน้ำ, วาล์วปิด หรือการซ่อมแซมของทางการ ลองตรวจเช็คตามขั้นตอนดังนี้',
+                safety_warning: '**คำเตือนความปลอดภัย** การตรวจสอบปั๊มน้ำ ให้แน่ใจว่าได้ตัดไฟที่เข้าสู่ปั๊มก่อนเสมอ',
+                steps: [
+                    {
+                        heading: 'ขั้นตอนที่ 1: ตรวจสอบมิเตอร์น้ำ',
+                        detail: 'เปิดก๊อกน้ำภายในบ้านทิ้งไว้ แล้วไปดูที่มิเตอร์น้ำหน้าบ้าน หากตัวเลขหยุดนิ่งสนิท แสดงว่าน้ำจากการประปาไม่มา ให้ติดต่อการประปา (1662)',
+                        image_placeholder: '[Image of มิเตอร์น้ำ]'
+                    },
+                    {
+                        heading: 'ขั้นตอนที่ 2: ตรวจสอบวาล์วหลัก',
+                        detail: 'ตรวจสอบวาล์วน้ำหลักบริเวณมิเตอร์น้ำและวาล์วเข้าบ้านว่าไม่ได้ถูกปิดอยู่โดยไม่ตั้งใจ',
+                        image_placeholder: ''
+                    },
+                    {
+                        heading: 'ขั้นตอนที่ 3: ตรวจสอบปั๊มน้ำ (ถ้ามี)',
+                        detail: 'หากใช้ปั๊มน้ำ ให้ตรวจสอบว่าปั๊มทำงานหรือไม่ หากมีเสียงแต่ไม่มีน้ำออก อาจเกิดจากปั๊มมีปัญหา หรือน้ำในถังเก็บหมด',
+                        image_placeholder: ''
+                    }
+                ]
+            },
+            'โครงสร้าง - หลังคารั่ว': {
+                title: 'การตรวจและแก้ไขหลังคารั่วเบื้องต้น',
+                description: 'ปัญหาหลังคารั่วซึมควรแก้ไขอย่างรวดเร็วเพื่อป้องกันความเสียหายต่อโครงสร้างภายใน',
+                safety_warning: '**คำเตือนความปลอดภัย** การปีนขึ้นไปบนหลังคาอันตรายมาก ควรทำด้วยความระมัดระวังสูงสุด และหากเป็นหลังคาสูง ควรเรียกช่าง',
+                steps: [
+                    {
+                        heading: 'ขั้นตอนที่ 1: หาสาเหตุจากภายใน',
+                        detail: 'ในขณะที่ฝนตก ให้ใช้ไฟฉายส่องจากใต้ฝ้าเพื่อระบุตำแหน่งรอยรั่วที่ชัดเจน แล้วทำเครื่องหมายไว้',
+                        image_placeholder: ''
+                    },
+                    {
+                        heading: 'ขั้นตอนที่ 2: ตรวจสอบภายนอก',
+                        detail: 'เมื่อฝนหยุดแล้ว (และแห้งสนิท) ให้ปีนขึ้นไปตรวจสอบบริเวณที่ทำเครื่องหมายไว้ หาแผ่นกระเบื้องที่แตก, รอยต่อที่ยาแนวเสื่อมสภาพ, หรือสกรูที่หลวม',
+                        image_placeholder: ''
+                    },
+                    {
+                        heading: 'ขั้นตอนที่ 3: ซ่อมแซมชั่วคราว',
+                        detail: 'ใช้วัสดุอุดรอยรั่ว (เช่น ซิลิโคน หรือกาวโพลียูรีเทน) อุดบริเวณรอยร้าว หรือขันสกรูให้แน่นขึ้น หากเป็นกระเบื้องแตกควรเปลี่ยนใหม่',
+                        image_placeholder: ''
+                    }
+                ]
+            },
+            'ปัญหาอื่นๆ - ติดต่อช่าง': { 
+                title: 'ปัญหาอื่นๆ: แจ้งเรื่องถึงทีมพัฒนา', // NEW TITLE: Dev-focused
+                description: 'อาการที่คุณเลือกมีความเฉพาะเจาะจง หรือไม่ตรงกับรายการที่มีอยู่ กรุณาเตรียมข้อมูลเพื่อแจ้งเรื่องให้ทีมพัฒนาทราบโดยตรง',
+                safety_warning: '**คำเตือนความปลอดภัย** โปรดจำไว้ว่าแอปนี้เป็นเพียงเครื่องมือช่วยวินิจฉัยเท่านั้น หากเป็นเหตุฉุกเฉิน หรือเป็นอันตรายต่อชีวิตและทรัพย์สิน โปรดติดต่อหน่วยงานที่เกี่ยวข้องทันที',
+                steps: [
+                    {
+                        heading: 'ขั้นตอนที่ 1: บันทึกข้อมูลและภาพถ่าย',
+                        detail: 'ถ่ายรูปหน้าจอ หรือวิดีโออาการที่เกิดขึ้นให้มากที่สุด พร้อมสรุปอาการหลักๆ ที่พบ เพื่อช่วยให้ทีมพัฒนาตรวจสอบได้เร็วขึ้น',
+                        image_placeholder: 'Image Placeholder: Taking screenshots (รูปภาพกำลังบันทึกภาพหน้าจอ)'
+                    },
+                    {
+                        heading: 'ขั้นตอนที่ 2: เตรียมการแจ้งเรื่อง',
+                        detail: 'ตรวจสอบอีเมลและชื่อบัญชีผู้ใช้ของคุณให้พร้อม จากนั้นกดปุ่ม "ส่งเรื่องถึงทีมพัฒนา" ด้านล่าง',
+                        image_placeholder: 'Image Placeholder: Close up on user profile (รูปภาพหน้าบัญชีผู้ใช้)'
+                    },
+                    {
+                        heading: 'ขั้นตอนที่ 3: รอการติดต่อกลับ',
+                        detail: 'ทีมพัฒนาจะตรวจสอบข้อมูลและทำการติดต่อกลับทางอีเมล หรือส่งข้อความผ่านแอปพลิเคชันของคุณภายใน 24 ชั่วโมง',
+                        image_placeholder: 'Image Placeholder: Phone waiting for response (รูปภาพโทรศัพท์กำลังรอการตอบกลับ)'
+                    }
+                ]
+            },
+        };
+
+        // --- Helper functions (removed LLM functions for clean code) ---
+        // Mock Registration Logic
+        window.handleRegistration = () => {
+            const email = document.getElementById('reg-email').value;
+            const password = document.getElementById('reg-password').value;
+            const confirmPassword = document.getElementById('reg-confirm-password').value;
+            const messageDiv = document.getElementById('registration-message');
+            const button = document.getElementById('register-button');
+
+            messageDiv.classList.add('hidden');
+            button.disabled = true;
+
+            // Simple client-side validation
+            if (password !== confirmPassword) {
+                messageDiv.textContent = '❌ รหัสผ่านไม่ตรงกัน โปรดตรวจสอบอีกครั้ง';
+                messageDiv.className = 'mb-4 p-3 rounded-md bg-red-100 text-red-700 font-medium text-center';
+                messageDiv.classList.remove('hidden');
+                button.disabled = false;
+                return;
+            }
+
+            if (password.length < 6) {
+                messageDiv.textContent = '❌ รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร';
+                messageDiv.className = 'mb-4 p-3 rounded-md bg-red-100 text-red-700 font-medium text-center';
+                messageDiv.classList.remove('hidden');
+                button.disabled = false;
+                return;
+            }
+
+            // Simulate API call delay
+            messageDiv.textContent = `... กำลังดำเนินการสมัครสมาชิก ...`;
+            messageDiv.className = 'mb-4 p-3 rounded-md bg-yellow-100 text-yellow-700 font-medium text-center';
+            messageDiv.classList.remove('hidden');
+
+            setTimeout(() => {
+                // Mock success
+                messageDiv.textContent = `✅ สมัครบัญชี ${email} เรียบร้อยแล้ว! โปรดเข้าสู่ระบบ`;
+                messageDiv.className = 'mb-4 p-3 rounded-md bg-green-100 text-green-700 font-medium text-center';
+                document.getElementById('registration-form').reset();
+                
+                // Navigate to login after a delay
+                setTimeout(() => {
+                    window.renderScreen('login');
+                }, 2000);
+                
+                button.disabled = false;
+
+            }, 1500);
+        }
+
+
+        // --- 1. Menu Definitions ---
+        const navItems = [
+            { id: 'home', icon: 'fas fa-home', name: 'หน้าหลัก' },
+            { id: 'diagnose', icon: 'fas fa-wrench', name: 'แจ้งซ่อม' },
+            { id: 'relevant_agencies', icon: 'fas fa-phone-volume', name: 'หน่วยงานที่เกี่ยวข้อง' },
+            { id: 'profile', icon: 'fas fa-user', name: 'บัญชี' }
+        ];
+
+        // --- 2. Screen Content Definitions ---
+
+        // A. หน้าหลัก (Home)
+        const homeScreen = `
+            <div class="text-center py-5">
+                <h1 class="text-3xl font-extrabold text-primary-blue">LocalFIX</h1>
+                <p class="text-lg text-slate-500 mt-1">ระบบแนะนำแนวทางการแก้ไขปัญหาภายในบ้านและท้องถิ่นตัวเอง</p> 
+            </div>
+
+            <!-- Hero Section & Primary CTA -->
+            <div class="bg-primary-blue p-5 rounded-lg mb-6 shadow-lg">
+                <h2 class="text-2xl font-semibold mb-3 text-white">วินิจฉัยปัญหาบ้านได้ทันที!</h2>
+                <p class="text-base text-slate-200 mb-4">รับคำแนะนำ DIY ด้วยตัวเอง หรือดูรายลิสต์หน่วยงานในท้องถิ่น</p>
+                <button onclick="renderScreen('diagnose')" class="w-full bg-accent-yellow hover:opacity-90 text-primary-blue font-bold py-3 rounded-md transition shadow-md text-lg">
+                    🛠️ เริ่มแจ้งปัญหาและรับคำแนะนำ DIY
+                </button>
+            </div>
+
+            <!-- Quick Access Icons -->
+            <h3 class="text-xl font-semibold mb-3 text-primary-blue border-b pb-2">เลือกหมวดหมู่บริการ</h3>
+            <div class="grid grid-cols-3 gap-3">
+                <div class="category-icon text-amber-600" onclick="renderScreen('diagnosis_detail', {category: 'ไฟฟ้า'})">
+                    <i class="fas fa-bolt"></i>
+                    <span class="text-sm font-medium">ไฟฟ้า</span>
+                </div>
+                <div class="category-icon text-blue-600" onclick="renderScreen('diagnosis_detail', {category: 'ประปา'})">
+                    <i class="fas fa-faucet"></i>
+                    <span class="text-sm font-medium">ประปา</span>
+                </div>
+                <div class="category-icon text-red-600" onclick="renderScreen('diagnosis_detail', {category: 'โครงสร้าง'})">
+                    <i class="fas fa-house-chimney-crack"></i>
+                    <span class="text-sm font-medium">โครงสร้าง</span>
+                </div>
+                <div class="category-icon text-purple-600" onclick="renderScreen('diagnosis_detail', {category: 'เครื่องใช้ไฟฟ้า'})">
+                    <i class="fas fa-blender-phone"></i>
+                    <span class="text-sm font-medium">เครื่องใช้ไฟฟ้า</span>
+                </div>
+                <div class="category-icon text-green-600" onclick="renderScreen('diagnosis_detail', {category: 'เครือข่าย'})">
+                    <i class="fas fa-wifi"></i>
+                    <span class="text-sm font-medium">เครือข่าย</span>
+                </div>
+                <div class="category-icon text-slate-600" onclick="renderScreen('diagnosis_detail', {category: 'อื่นๆ'})">
+                    <i class="fas fa-ellipsis"></i>
+                    <span class="text-sm font-medium">อื่นๆ</span>
+                </div>
+            </div>
+
+            <!-- Trust Section - UPDATED TEXT HERE -->
+            <div class="mt-8 text-center border-t pt-4">
+                <p class="text-sm text-slate-500">🛠️ บริการโดยอ้างอิงข้อมูลจากคู่มือและหน่วยงานที่เชื่อถือได้ในพื้นที่</p>
+            </div>
+        `;
+
+        // B. หน้าแจ้งซ่อม/วินิจฉัย (Diagnosis)
+        const diagnoseScreen = `
+            <h2 class="text-2xl font-bold mb-5 text-primary-blue">ขั้นตอนที่ 1: เลือกประเภทปัญหา</h2>
+            <p class="text-base text-slate-600 mb-4">กรุณาแตะ Icon ที่ตรงกับปัญหาที่เกิดขึ้นในบ้านของคุณ</p>
+            <div class="grid grid-cols-2 gap-4">
+                <div class="category-icon text-amber-600" onclick="renderScreen('diagnosis_detail', {category: 'ไฟฟ้า'})">
+                    <i class="fas fa-bolt"></i>
+                    <span class="text-lg font-medium">งานไฟฟ้า</span>
+                </div>
+                <div class="category-icon text-blue-600" onclick="renderScreen('diagnosis_detail', {category: 'ประปา'})">
+                    <i class="fas fa-faucet"></i>
+                    <span class="text-lg font-medium">งานประปา</span>
+                </div>
+                <div class="category-icon text-red-600" onclick="renderScreen('diagnosis_detail', {category: 'โครงสร้าง'})">
+                    <i class="fas fa-house-chimney-crack"></i>
+                    <span class="text-lg font-medium">โครงสร้าง/หลังคา</span>
+                </div>
+                <div class="category-icon text-purple-600" onclick="renderScreen('diagnosis_detail', {category: 'เครื่องใช้ไฟฟ้า'})">
+                    <i class="fas fa-blender-phone"></i>
+                    <span class="text-lg font-medium">เครื่องใช้ไฟฟ้า</span>
+                </div>
+                <div class="category-icon text-green-600" onclick="renderScreen('diagnosis_detail', {category: 'เครือข่าย'})">
+                    <i class="fas fa-wifi"></i>
+                    <span class="text-lg font-medium">อินเทอร์เน็ต</span>
+                </div>
+                <div class="category-icon text-slate-600" onclick="renderScreen('diagnosis_detail', {category: 'อื่นๆ'})">
+                    <i class="fas fa-ellipsis"></i>
+                    <span class="text-lg font-medium">อื่นๆ</span>
+                </div>
+            </div>
+        `;
+
+        // C. หน้าเลือกอาการเฉพาะ (Diagnosis Detail) - ALL Manual/Image Links
+        const diagnosisDetailScreen = (category) => {
+            let nextScreen = 'advice_screen'; 
+            let problemOptions = [];
+            
+            // Adjust problems based on category
+            if (category === 'ไฟฟ้า') {
+                problemOptions = [
+                    { key: 'ไฟฟ้า - เบรกเกอร์ตัด', 
+                      desc: 'ปัญหาหยุดชะงักการใช้งาน (เช่น ไฟดับเฉพาะจุด, เบรกเกอร์ตัด)' },
+                    { key: 'ไฟฟ้า - ปลั๊กมีเสียงดัง/ความร้อนสูง', 
+                      desc: 'มีอาการแต่ยังพอใช้งานได้ (มีเสียง, ร้อน, รั่วซึม)' },
+                    { key: 'ไฟฟ้า - เปลี่ยนหลอดไฟ', 
+                      desc: 'คำแนะนำขั้นตอนการเปลี่ยนหลอดไฟด้วยตนเองอย่างถูกต้อง' },
+                    { key: 'ปัญหาอื่นๆ - ติดต่อช่าง', 
+                      desc: 'ส่งเรื่องโดยตรงถึงผู้ดูแลระบบ เมื่อแก้ไขไม่ได้หรือปัญหาซับซ้อน' }
+                ];
+            } else if (category === 'ประปา') {
+                problemOptions = [
+                    { key: 'ประปา - น้ำไม่ไหล', desc: 'ปัญหาหยุดชะงักการใช้งาน (เช่น น้ำไม่ไหลเลย, น้ำไหลเบามาก)' },
+                    { key: 'ประปา - ปั๊มน้ำมีเสียงดัง', desc: 'มีอาการแต่ยังพอใช้งานได้ (ปั๊มเสียงดังผิดปกติ)' },
+                    { key: 'โครงสร้าง - หลังคารั่ว', desc: 'ปัญหารั่วซึมที่ต้องมีการตรวจสอบอย่างละเอียด' },
+                    { key: 'ปัญหาอื่นๆ - ติดต่อช่าง', desc: 'ส่งเรื่องโดยตรงถึงผู้ดูแลระบบ เมื่อแก้ไขไม่ได้หรือปัญหาซับซ้อน' }
+                ];
+            } else if (category === 'โครงสร้าง') {
+                problemOptions = [
+                    { key: 'โครงสร้าง - หลังคารั่ว', desc: 'ปัญหารั่วซึมที่ต้องมีการตรวจสอบอย่างละเอียด' },
+                    { key: 'โครงสร้าง - ผนังร้าวขนาดเล็ก', desc: 'มีรอยร้าวที่ไม่เป็นอันตรายต่อโครงสร้าง (ร้าวลายงา)' },
+                    { key: 'ปัญหาอื่นๆ - ติดต่อช่าง', desc: 'ส่งเรื่องโดยตรงถึงผู้ดูแลระบบ เมื่อแก้ไขไม่ได้หรือปัญหาซับซ้อน' }
+                ];
+            } else { // 'อื่นๆ', 'เครือข่าย', 'เครื่องใช้ไฟฟ้า'
+                 problemOptions = [
+                    { key: 'ปัญหาอื่นๆ - ติดต่อช่าง', desc: 'ปัญหาทั่วไปที่ยังไม่ทราบสาเหตุ หรืออาการอื่นๆ ที่นอกเหนือจากรายการ' },
+                    { key: 'ปัญหาอื่นๆ - ติดต่อช่าง', desc: 'หากมีข้อสงสัยอื่นๆ โปรดเลือกตัวเลือกนี้' },
+                    { key: 'ปัญหาอื่นๆ - ติดต่อช่าง', desc: 'ส่งเรื่องโดยตรงถึงผู้ดูแลระบบ เมื่อแก้ไขไม่ได้หรือปัญหาซับซ้อน' }
+                ];
+            }
+
+            const buttonsHtml = problemOptions.map(option => `
+                <button onclick="renderScreen('${nextScreen}', {problem: '${option.key}'})" class="w-full text-left p-4 bg-white border-2 border-slate-200 hover:bg-light-blue-bg rounded-md shadow-sm transition text-lg">
+                    <span class="font-semibold text-primary-blue">⚫ ${option.key.replace('ปัญหาอื่นๆ - ติดต่อช่าง', 'ไม่พบอาการที่ต้องการ/ส่งเรื่องซับซ้อน')}</span>
+                    <p class="text-sm text-slate-500 mt-1">${option.desc}</p>
+                </button>
+            `).join('');
+
+
+            return `
+                <h2 class="text-2xl font-bold mb-5 text-primary-blue">ขั้นตอนที่ 2: เลือกอาการเฉพาะ (${category})</h2>
+                <p class="text-base text-slate-600 mb-4">เลือกอาการที่ใกล้เคียงที่สุด เพื่อรับคำแนะนำพร้อมรูปภาพประกอบ</p>
+                <div class="space-y-3">
+                    ${buttonsHtml}
+                </div>
+            `;
+        };
+        
+        
+        // D. หน้าคำแนะนำ DIY (Manual Content with Image Slot) - Consolidated Screen
+        const adviceScreen = (problemKey) => {
+            const solution = manualSolutions[problemKey];
+
+            if (!solution) {
+                return `<div class="p-4 text-center text-red-500">ไม่พบข้อมูลการแก้ไขสำหรับปัญหานี้</div>`;
+            }
+
+            let stepsHtml = solution.steps.map((step, index) => `
+                <div class="diy-step">
+                    <p class="font-bold text-lg text-primary-blue">${step.heading}</p>
+                    <p class="text-base mt-1">${step.detail}</p>
+                    <div class="mt-3 p-3 bg-white border border-dashed border-slate-300 rounded-md text-center text-sm text-slate-500">
+                        <!-- Image placeholder - User can add a real image URL here -->
+                        <p class="text-sm italic mb-2">${step.image_placeholder}</p>
+                        <img src="https://placehold.co/360x180/003366/FFFFFF?text=Step+${index + 1}+Image+Here" 
+                             alt="${step.image_placeholder}" class="mt-2 w-full rounded-sm"/>
+                    </div>
+                </div>
+            `).join('');
+            
+            // Logic for the final button based on the problem key
+            let fallbackButton = '';
+            let fallbackTitle = 'ขั้นตอนไม่สำเร็จ?';
+
+            if (problemKey.includes('ปัญหาอื่นๆ')) {
+                 // **UPDATED: Direct to Report Form Screen**
+                 fallbackTitle = 'ต้องการแจ้งเรื่อง?';
+                 fallbackButton = `
+                     <button onclick="renderScreen('report_issue_form', {problem: '${problemKey}'})" class="w-full bg-primary-blue hover:opacity-90 text-white font-bold py-3 rounded-md transition shadow text-lg">
+                         <i class="fas fa-code-branch mr-2"></i> ส่งเรื่องถึงผู้ดูแลระบบ
+                     </button>
+                 `;
+            } else {
+                 // For standard DIY issues
+                 fallbackButton = `
+                     <button onclick="renderScreen('relevant_agencies')" class="w-full bg-accent-yellow hover:opacity-90 text-primary-blue font-bold py-3 rounded-md transition shadow text-lg">
+                         📞 ค้นหาหน่วยงานที่เกี่ยวข้องในพื้นที่ศรีสะเกษ
+                     </button>
+                 `;
+            }
+
+
+            return `
+                <h2 class="text-2xl font-bold mb-5 text-primary-blue">📝 วิธีแก้ปัญหาด้วยตนเอง: ${solution.title}</h2>
+                <div class="safety-warning">
+                    <i class="fas fa-triangle-exclamation mr-2"></i> ${solution.safety_warning}
+                </div>
+                <p class="text-base text-slate-600 mb-4">${solution.description}</p>
+                
+                ${stepsHtml}
+
+                <div class="mt-8 p-4 bg-gray-100 rounded-lg text-center">
+                    <h3 class="text-xl font-semibold mb-3 text-primary-blue">${fallbackTitle}</h3>
+                    ${fallbackButton}
+                </div>
+            `;
+        };
+
+        // E. หน้าหน่วยงานที่เกี่ยวข้อง (Relevant Agencies)
+        const relevantAgenciesScreen = () => {
+            const location = 'ศรีสะเกษ';
+
+            // Function to generate card HTML (Button Removed)
+            const generateCardHtml = (p) => `
+                <div class="provider-card">
+                    <img src="${p.logo_url}" alt="Logo" class="w-12 h-12 object-cover rounded-md shadow-sm border border-slate-200 flex-shrink-0">
+                    <div class="provider-info">
+                        <h3 class="text-lg font-semibold text-primary-blue">${p.name} <span class="text-sm font-medium text-slate-500">(${p.type})</span></h3>
+                        <p class="text-base mt-1"><i class="fas fa-phone mr-2 text-accent-yellow"></i> **เบอร์โทร:** ${p.phone}</p>
+                        <p class="text-sm text-slate-600"><i class="fas fa-location-dot mr-2 text-accent-yellow"></i> **ที่อยู่:** ${p.address}</p>
+                        <p class="text-sm italic text-slate-500 mt-2">${p.detail}</p>
+                    </div>
+                </div>
+            `;
+            
+            // 1. Government Agencies
+            const agenciesHtml = governmentAgencies.map(generateCardHtml).join('');
+
+            // 2. Private Shops
+            const shopsHtml = privateShops.map(generateCardHtml).join('');
+
+
+            return `
+                <h2 class="text-2xl font-bold mb-5 text-primary-blue">ติดต่อหน่วยงานที่เกี่ยวข้อง (จังหวัด${location})</h2>
+                <p class="text-base text-slate-600 mb-4">รายชื่อและเบอร์โทรติดต่อสำคัญในพื้นที่ศรีสะเกษ</p>
+                
+                <!-- Section 1: Government Agencies -->
+                <h3 class="text-xl font-bold mb-3 text-primary-blue border-b pb-2"><i class="fas fa-building mr-2"></i> หน่วยงานภาครัฐและรัฐวิสาหกิจ</h3>
+                <div class="space-y-4 mb-8">
+                    ${agenciesHtml}
+                </div>
+                
+                <!-- Section 2: Private Shops -->
+                <h3 class="text-xl font-bold mb-3 text-primary-blue border-b pb-2"><i class="fas fa-tools mr-2"></i> รายชื่อผู้ให้บริการภาคเอกชน</h3>
+                <div class="space-y-4">
+                    ${shopsHtml}
+                </div>
+
+                <p class="text-center text-sm text-slate-400 mt-5">ข้อมูลอัปเดต ณ ปัจจุบัน</p>
+            `;
+        };
+        
+        // F. หน้าสมัครบัญชี (Registration)
+        const registrationScreen = `
+            <h2 class="text-2xl font-bold mb-5 text-primary-blue">สมัครบัญชีผู้ใช้ใหม่</h2>
+            <p class="text-base text-slate-600 mb-6">กรุณากรอกข้อมูลเพื่อสร้างบัญชี LocalFIX</p>
+            
+            <div id="registration-message" class="mb-4 hidden p-3 rounded-md text-center"></div>
+
+            <form id="registration-form" onsubmit="event.preventDefault(); handleRegistration();" class="space-y-4">
+                <div>
+                    <label for="reg-email" class="block text-sm font-medium text-slate-700 mb-1">อีเมล</label>
+                    <input type="email" id="reg-email" required 
+                           class="w-full p-3 border border-slate-300 rounded-md focus:ring-primary-blue focus:border-primary-blue transition"
+                           placeholder="yourname@example.com">
+                </div>
+                <div>
+                    <label for="reg-password" class="block text-sm font-medium text-slate-700 mb-1">รหัสผ่าน (ขั้นต่ำ 6 ตัวอักษร)</label>
+                    <input type="password" id="reg-password" required minlength="6"
+                           class="w-full p-3 border border-slate-300 rounded-md focus:ring-primary-blue focus:border-primary-blue transition"
+                           placeholder="••••••••">
+                </div>
+                <div>
+                    <label for="reg-confirm-password" class="block text-sm font-medium text-slate-700 mb-1">ยืนยันรหัสผ่าน</label>
+                    <input type="password" id="reg-confirm-password" required minlength="6"
+                           class="w-full p-3 border border-slate-300 rounded-md focus:ring-primary-blue focus:border-primary-blue transition"
+                           placeholder="••••••••">
+                </div>
+                
+                <button type="submit" id="register-button" 
+                        class="w-full bg-primary-blue hover:opacity-90 text-white font-bold py-3 rounded-md transition shadow-md text-lg">
+                    <i class="fas fa-user-plus mr-2"></i> สมัครสมาชิก
+                </button>
+            </form>
+
+            <div class="mt-6 text-center">
+                <p class="text-sm text-slate-600">มีบัญชีอยู่แล้ว? <a href="#" onclick="renderScreen('login')" class="text-primary-blue font-semibold hover:underline">เข้าสู่ระบบ</a></p>
+            </div>
+        `;
+
+        // G. หน้าเข้าสู่ระบบ (Login) - Simple Mockup
+        const loginScreen = `
+            <h2 class="text-2xl font-bold mb-5 text-primary-blue">เข้าสู่ระบบ</h2>
+            <p class="text-base text-slate-600 mb-6">กรุณาเข้าสู่ระบบเพื่อใช้งานต่อ</p>
+            
+            <form class="space-y-4">
+                <div>
+                    <label for="login-email" class="block text-sm font-medium text-slate-700 mb-1">อีเมล</label>
+                    <input type="email" id="login-email" required 
+                           class="w-full p-3 border border-slate-300 rounded-md focus:ring-primary-blue focus:border-primary-blue transition"
+                           placeholder="yourname@example.com">
+                </div>
+                <div>
+                    <label for="login-password" class="block text-sm font-medium text-slate-700 mb-1">รหัสผ่าน</label>
+                    <input type="password" id="login-password" required
+                           class="w-full p-3 border border-slate-300 rounded-md focus:ring-primary-blue focus:border-primary-blue transition"
+                           placeholder="••••••••">
+                </div>
+                
+                <button type="button" 
+                        class="w-full bg-accent-yellow hover:opacity-90 text-primary-blue font-bold py-3 rounded-md transition shadow-md text-lg">
+                    <i class="fas fa-sign-in-alt mr-2"></i> เข้าสู่ระบบ
+                </button>
+            </form>
+
+            <div class="mt-6 text-center">
+                <p class="text-sm text-slate-600">ยังไม่มีบัญชี? <a href="#" onclick="renderScreen('register')" class="text-primary-blue font-semibold hover:underline">สมัครสมาชิก</a></p>
+            </div>
+        `;
+        
+        // H. หน้าฟอร์มแจ้งปัญหา (Report Issue Form) - NEW SCREEN
+        const reportFormScreen = (problemKey) => {
+            const defaultTitle = problemKey.includes('ปัญหาอื่นๆ') ? 'ปัญหาซับซ้อน/ไม่พบอาการในรายการ' : (manualSolutions[problemKey]?.title || 'เรื่องทั่วไป');
+            const defaultType = problemKey.includes('ปัญหาอื่นๆ') ? 'cannot_fix' : 'general_question';
+
+            return `
+                <h2 class="text-2xl font-bold mb-5 text-primary-blue">แบบฟอร์มแจ้งเรื่องถึงผู้ดูแลระบบ</h2>
+                <p class="text-base text-slate-600 mb-6">กรุณากรอกรายละเอียดของปัญหาหรือข้อเสนอแนะที่ต้องการแจ้ง</p>
+                
+                <form id="issue-report-form" onsubmit="event.preventDefault(); handleIssueReportSubmit(event);" class="space-y-4">
+                    
+                    <!-- ประเภทของปัญหา -->
+                    <div class="mb-4">
+                        <label for="issue-type" class="block text-sm font-medium text-primary-blue mb-2">ประเภทของปัญหา:</label>
+                        <select id="issue-type" name="issue-type" required
+                                class="w-full p-3 border border-slate-300 rounded-md focus:ring-primary-blue focus:border-primary-blue transition duration-150">
+                            <option value="cannot_fix" ${defaultType === 'cannot_fix' ? 'selected' : ''}>แก้ปัญหาไม่ได้/ติดขัดอย่างรุนแรง</option>
+                            <option value="needs_modification">ต้องการให้แก้ไข/เพิ่มฟีเจอร์</option>
+                            <option value="minor_bug">พบข้อผิดพลาดเล็กน้อย (Bug)</option>
+                            <option value="general_question" ${defaultType === 'general_question' ? 'selected' : ''}>คำถามทั่วไป/ข้อเสนอแนะ</option>
+                            <option value="no_problem">ไม่มีปัญหา (ใช้เพื่อแจ้งว่าทุกอย่างเรียบร้อย)</option>
+                        </select>
+                    </div>
+
+                    <!-- หัวข้อเรื่อง -->
+                    <div class="mb-4">
+                        <label for="issue-title" class="block text-sm font-medium text-primary-blue mb-2">หัวข้อเรื่อง (สั้นๆ):</label>
+                        <input type="text" id="issue-title" name="issue-title" required maxlength="100"
+                               value="${defaultTitle}"
+                               placeholder="เช่น: ปุ่มบันทึกไม่ทำงาน"
+                               class="w-full p-3 border border-slate-300 rounded-md focus:ring-primary-blue focus:border-primary-blue transition duration-150">
+                    </div>
+
+                    <!-- รายละเอียด -->
+                    <div class="mb-6">
+                        <label for="issue-description" class="block text-sm font-medium text-primary-blue mb-2">รายละเอียดปัญหา:</label>
+                        <textarea id="issue-description" name="issue-description" rows="5" required
+                                  placeholder="โปรดอธิบายปัญหาหรือข้อเสนอแนะอย่างละเอียด พร้อมขั้นตอนที่ทำมาแล้ว"
+                                  class="w-full p-3 border border-slate-300 rounded-md focus:ring-primary-blue focus:border-primary-blue transition duration-150 resize-y"></textarea>
+                    </div>
+
+                    <div class="flex justify-between items-center">
+                        <button type="button" onclick="goBack()"
+                                class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-3 px-4 rounded-md 
+                                       transition duration-300">
+                            <i class="fas fa-undo mr-2"></i> ย้อนกลับ
+                        </button>
+                        <button type="submit" id="report-submit-button"
+                                class="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-md 
+                                       transition duration-300 ease-in-out">
+                            <i class="fas fa-paper-plane mr-2"></i> ส่งเรื่องแจ้งปัญหา
+                        </button>
+                    </div>
+                </form>
+            `;
+        };
+
+
+        // --- 3. Rendering and Navigation Logic (Pointer/Interaction) ---
+
+        const appScreen = document.getElementById('app-screen');
+        const appHeader = document.getElementById('app-header');
+
+        function renderHeader(title) {
+            if (navigationHistory.length > 1) {
+                appHeader.innerHTML = `
+                    <span class="back-button" onclick="goBack()">
+                        <i class="fas fa-arrow-left"></i>
+                    </span>
+                    ${title}
+                `;
+                appHeader.classList.remove('hidden');
+            } else {
+                appHeader.classList.add('hidden');
+            }
+        }
+
+        // ทำให้ renderScreen เป็น Global (Fix for ReferenceError)
+        window.renderScreen = (screenName, data = {}) => {
+            let html = '';
+            let title = '';
+            let screenData = data; 
+
+            switch (screenName) {
+                case 'home':
+                    html = homeScreen;
+                    title = 'หน้าหลัก LocalFIX';
+                    break;
+                case 'diagnose':
+                    html = diagnoseScreen;
+                    title = 'แจ้งซ่อม/วินิจฉัยปัญหา';
+                    break;
+                case 'diagnosis_detail':
+                    html = diagnosisDetailScreen(data.category);
+                    title = `เลือกอาการ: ${data.category}`;
+                    break;
+                case 'advice_screen': // Consolidated manual advice screen
+                    html = adviceScreen(data.problem);
+                    title = `คำแนะนำ DIY`;
+                    break;
+                case 'relevant_agencies': 
+                    html = relevantAgenciesScreen(); 
+                    title = 'หน่วยงานที่เกี่ยวข้อง (ศรีสะเกษ)';
+                    break;
+                case 'profile':
+                case 'register': 
+                    html = registrationScreen;
+                    title = 'สมัครบัญชี';
+                    break;
+                case 'login': 
+                    html = loginScreen;
+                    title = 'เข้าสู่ระบบ';
+                    break;
+                // **NEW CASE:** Handle the report issue form screen
+                case 'report_issue_form':
+                    html = reportFormScreen(data.problem || '');
+                    title = 'แบบฟอร์มแจ้งปัญหา';
+                    break;
+                default:
+                    html = `<div class="p-4"><h2>Error: Screen Not Found</h2></div>`;
+                    title = 'Error';
+            }
+
+            // Only push to history if navigating to a new screen/state
+            const lastHistory = navigationHistory[navigationHistory.length - 1];
+            if (!lastHistory || lastHistory.name !== screenName || JSON.stringify(lastHistory.data) !== JSON.stringify(screenData)) {
+                navigationHistory.push({ name: screenName, data: screenData, title: title });
+            }
+
+
+            appScreen.innerHTML = html;
+            renderHeader(title);
+
+            // Set Active Navigation
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            const activeNav = document.querySelector(`.nav-item[onclick*="'${screenName}'"]`);
+            if (activeNav) {
+                activeNav.classList.add('active');
+            } else if (['diagnosis_detail', 'advice_screen', 'report_issue_form'].includes(screenName)) {
+                 // Keep 'diagnose' active for all diagnosis sub-paths
+                 document.querySelector(`.nav-item[onclick*="'diagnose'"]`)?.classList.add('active');
+            } else if (screenName === 'register' || screenName === 'login') {
+                 // Keep 'profile' active for login/register screens
+                 document.querySelector(`.nav-item[onclick*="'profile'"]`)?.classList.add('active');
+            }
+        }
+
+        // ทำให้ goBack เป็น Global (Fix for ReferenceError)
+        window.goBack = () => {
+            if (navigationHistory.length > 1) {
+                navigationHistory.pop(); 
+                const previousScreen = navigationHistory[navigationHistory.length - 1];
+                navigationHistory.pop();
+                window.renderScreen(previousScreen.name, previousScreen.data);
+            }
+        }
+
+        // Initialize the app on the home screen
+        document.addEventListener('DOMContentLoaded', () => {
+            window.renderScreen('home');
+        });
+    </script>
+</body>
+</html>
