@@ -80,7 +80,10 @@
         <div class="modal-content">
             <div class="mb-4 text-primary-blue text-4xl"><i class="fas fa-info-circle"></i></div>
             <p id="modal-message" class="text-lg font-medium text-gray-800 mb-6"></p>
-            <button onclick="closeModal()" class="w-full bg-[#003366] hover:bg-blue-900 text-white font-semibold py-3 px-6 rounded-xl transition duration-200 shadow-md">รับทราบ</button>
+            <!-- Container for buttons to allow dynamic injection -->
+            <div id="modal-actions" class="flex gap-2 justify-center">
+                <button onclick="closeModal()" class="w-full bg-[#003366] hover:bg-blue-900 text-white font-semibold py-3 px-6 rounded-xl transition duration-200 shadow-md">รับทราบ</button>
+            </div>
         </div>
     </div>
 
@@ -96,46 +99,77 @@
         const DJANGO_REGISTER_URL = `${API_BASE}/register/`;
         const DJANGO_SUBMIT_URL = `${API_BASE}/submit-issue/`;
 
-        // --- Mock Data (Admin & Agencies) ---
+        // --- Mock Data (Database จำลอง) ---
         const ADMIN_DATA = { "username": "admin", "password": "admin123", "role": "super_admin", "name": "System Administrator" };
+        
         const AGENCIES_DATA = [
             { "username": "pea_admin", "password": "pea123", "role": "agency", "name": "การไฟฟ้าส่วนภูมิภาค (PEA)", "category": "ไฟฟ้า" },
             { "username": "pwa_admin", "password": "pwa123", "role": "agency", "name": "การประปาส่วนภูมิภาค (PWA)", "category": "ประปา" },
             { "username": "muni_admin", "password": "muni123", "role": "agency", "name": "เทศบาลเมือง", "category": "โครงสร้าง" }
         ];
 
+        // เพิ่มข้อมูลผู้ใช้ทั่วไปจำลองสำหรับการทดสอบ
+        const USERS_DATA = [
+            { "username": "user", "password": "user123", "role": "user", "name": "ผู้ใช้ทั่วไป (Demo)" },
+            // 1. เพิ่มผู้ใช้ทดสอบตามโจทย์
+            { "username": "TestUser", "password": "12345678", "role": "user", "name": "Test User" }
+        ];
+
+        // 2. Mock Database สำหรับเก็บรายการแจ้งซ่อม (เพื่อให้ Admin เห็น)
+        let REPORTS_DATABASE = [
+            { id: 'REP-001', type: 'urgent_repair', title: 'ไฟดับทั้งซอย 5', desc: 'ดับมา 1 ชั่วโมงแล้ว', user: 'user01', status: 'pending', date: '2023-10-25 10:30' },
+            { id: 'REP-002', type: 'complaint', title: 'ท่อประปาแตก', desc: 'น้ำเจิ่งนองเต็มถนน', user: 'user02', status: 'in_progress', date: '2023-10-25 09:15' }
+        ];
+
         // --- Helper Functions ---
         const statusModal = document.getElementById('status-modal');
         const modalMessage = document.getElementById('modal-message');
-        window.showModal = (msg) => { modalMessage.textContent = msg; statusModal.style.display = 'flex'; }
+        const modalActions = document.getElementById('modal-actions');
+
+        window.showModal = (msg, customActionHtml = null) => {
+            modalMessage.textContent = msg;
+            if (customActionHtml) {
+                modalActions.innerHTML = customActionHtml;
+            } else {
+                modalActions.innerHTML = `<button onclick="closeModal()" class="w-full bg-[#003366] hover:bg-blue-900 text-white font-semibold py-3 px-6 rounded-xl transition duration-200 shadow-md">รับทราบ</button>`;
+            }
+            statusModal.style.display = 'flex';
+        }
         window.closeModal = () => { statusModal.style.display = 'none'; }
 
         // --- Login Logic ---
         window.handleLogin = (e) => {
             e.preventDefault();
-            const u = document.getElementById('login-email').value;
-            const p = document.getElementById('login-password').value;
+            const u = document.getElementById('login-email').value.trim();
+            const p = document.getElementById('login-password').value.trim();
             const btn = document.getElementById('login-btn');
             
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> กำลังตรวจสอบ...';
             btn.disabled = true;
 
             setTimeout(() => {
+                let foundUser = null;
+
                 if (u === ADMIN_DATA.username && p === ADMIN_DATA.password) {
-                    currentUser = ADMIN_DATA;
-                    showModal(`ยินดีต้อนรับ Admin: ${currentUser.name}`);
+                    foundUser = ADMIN_DATA;
+                    showModal(`ยินดีต้อนรับ Admin: ${foundUser.name}`);
                     renderScreen('admin_dashboard');
                 } else if (AGENCIES_DATA.find(user => user.username === u && user.password === p)) {
-                    currentUser = AGENCIES_DATA.find(user => user.username === u && user.password === p);
-                    showModal(`ยินดีต้อนรับหน่วยงาน: ${currentUser.name}`);
+                    foundUser = AGENCIES_DATA.find(user => user.username === u && user.password === p);
+                    showModal(`ยินดีต้อนรับหน่วยงาน: ${foundUser.name}`);
                     renderScreen('agency_dashboard');
-                } else if (u && p) {
-                    currentUser = { name: "ผู้ใช้ทั่วไป", role: "user" };
-                    showModal("เข้าสู่ระบบสำเร็จ");
+                } else if (USERS_DATA.find(user => user.username === u && user.password === p)) {
+                    foundUser = USERS_DATA.find(user => user.username === u && user.password === p);
+                    showModal(`เข้าสู่ระบบสำเร็จ ยินดีต้อนรับคุณ ${foundUser.name}`);
                     renderScreen('home');
                 } else {
-                    showModal("ข้อมูลไม่ถูกต้อง");
+                    showModal("❌ ไม่มีบัญชีนั้นๆอยู่ โปรดตรวจสอบชื่อผู้ใช้หรือรหัสผ่าน");
                 }
+
+                if(foundUser) {
+                    currentUser = foundUser;
+                }
+
                 btn.innerHTML = 'เข้าสู่ระบบ';
                 btn.disabled = false;
             }, 800);
@@ -143,36 +177,49 @@
 
         window.handleLogout = () => { currentUser = null; showModal("ออกจากระบบแล้ว"); renderScreen('login'); };
 
-        // --- Submit Issue ---
+        // --- Submit Issue (UPDATED logic) ---
         window.handleIssueReportSubmit = async (e) => {
             e.preventDefault();
+            
+            // 1. ตรวจสอบว่าล็อกอินหรือยัง
+            if (!currentUser) {
+                const registerBtnHtml = `
+                    <button onclick="closeModal(); renderScreen('register');" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-xl shadow-md">ไปหน้าสมัครบัญชี</button>
+                    <button onclick="closeModal()" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-4 rounded-xl">ยกเลิก</button>
+                `;
+                showModal("⚠️ คุณยังไม่ได้สมัครบัญชี\nกรุณาสมัครสมาชิกหรือเข้าสู่ระบบก่อนส่งแจ้งซ่อม", registerBtnHtml);
+                return;
+            }
+
             const btn = document.getElementById('report-submit-button');
             const originalText = btn.innerHTML;
             btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> กำลังส่ง...';
 
             const issueForm = document.getElementById('issue-report-form');
-            const payload = {
-                issueType: issueForm['issue-type'].value,
-                title: issueForm['issue-title'].value,
-                description: issueForm['issue-description'].value
-            };
+            const typeVal = issueForm['issue-type'].value;
+            const titleVal = issueForm['issue-title'].value;
+            const descVal = issueForm['issue-description'].value;
 
-            try {
-                const response = await fetch(DJANGO_SUBMIT_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                const result = await response.json();
-                if (response.ok && result.success) {
-                    showModal(`✅ ส่งเรื่องเรียบร้อย! (Ref ID: #${result.id})`);
-                    issueForm.reset();
-                    renderScreen('home');
-                } else { throw new Error(result.error || 'Server Error'); }
-            } catch (error) {
-                if (error.message.includes('Failed to fetch')) showModal(`⚠️ เชื่อมต่อ Server ไม่ได้ (Demo Mode)`);
-                else showModal(`❌ Error: ${error.message}`);
-            } finally { btn.disabled = false; btn.innerHTML = originalText; }
+            // จำลองการส่งข้อมูล
+            setTimeout(() => {
+                // เพิ่มลง Mock Database (เพื่อให้ Admin เห็น)
+                const newReport = {
+                    id: `REP-${Math.floor(Math.random() * 10000)}`,
+                    type: typeVal,
+                    title: titleVal,
+                    desc: descVal,
+                    user: currentUser.username,
+                    status: 'pending',
+                    date: new Date().toLocaleString('th-TH')
+                };
+                REPORTS_DATABASE.unshift(newReport); // เพิ่มไว้บนสุด
+
+                showModal(`✅ ส่งเรื่องเรียบร้อย! (Ref ID: #${newReport.id})\nAdmin ได้รับข้อมูลแล้ว`);
+                issueForm.reset();
+                renderScreen('home');
+                
+                btn.disabled = false; btn.innerHTML = originalText;
+            }, 1000);
         };
 
         // --- Handle User Registration ---
@@ -193,25 +240,22 @@
                 return;
             }
 
-            try {
-                const response = await fetch(DJANGO_REGISTER_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, email, password })
-                });
-                const result = await response.json();
-                
-                if (response.ok && result.success) {
-                    showModal(`✅ สมัครสมาชิกสำเร็จ!\nUsername: ${result.username} ถูกบันทึกในระบบ Admin แล้ว`);
-                    renderScreen('login');
-                } else { throw new Error(result.error || 'เกิดข้อผิดพลาด'); }
-            } catch (error) {
-                if (error.message.includes('Failed to fetch')) showModal(`⚠️ เชื่อมต่อ Django ไม่ได้\nกรุณารัน Server ก่อน`);
-                else showModal(`❌ Error: ${error.message}`);
-            } finally { btn.disabled = false; btn.innerHTML = originalText; }
+            // เพิ่มเข้า Mock DB ทันที
+            USERS_DATA.push({
+                "username": username,
+                "password": password,
+                "role": "user",
+                "name": username
+            });
+
+            setTimeout(() => {
+                showModal(`✅ สมัครสมาชิกสำเร็จ!\nUsername: ${username} สามารถใช้งานได้ทันที`);
+                renderScreen('login');
+                btn.disabled = false; btn.innerHTML = originalText;
+            }, 800);
         };
 
-        // --- Data: Agencies ---
+        // --- Data ---
         const governmentAgencies = [
             { id: 1, name: "การไฟฟ้าส่วนภูมิภาค (PEA)", type: "ไฟฟ้า", phone: "1129", address: "ถ.อุบลราชธานี, อ.เมือง", logo_url: "https://placehold.co/100x100/E6F0F8/003366?text=PEA" },
             { id: 2, name: "การประปาส่วนภูมิภาค (PWA)", type: "ประปา", phone: "1662", address: "ถ.กสิกร, อ.เมือง", logo_url: "https://placehold.co/100x100/E6F0F8/003366?text=PWA" },
@@ -221,37 +265,28 @@
              { id: 101, name: "ร้านช่างทางไปมหาลัย", type: "ซ่อมทั่วไป", phone: "08x-xxx-xxxx", address: "ใกล้ม.ราชภัฏ", logo_url: "https://placehold.co/100x100/E6F0F8/003366?text=Shop" }
         ];
 
-        // --- Data: Manual Solutions (Expanded Content) ---
+        // --- Manual Solutions ---
         const manualSolutions = {
-            // หมวดไฟฟ้า (5 อาการ)
             'ไฟฟ้า - เบรกเกอร์ตัดบ่อย': { title: 'เบรกเกอร์ตัดบ่อย', description: 'เกิดจากใช้ไฟเกินหรืออุปกรณ์ช็อต', safety_warning: 'ระวังไฟดูด ห้ามจับขณะมือเปียก', steps: [{ heading: '1. ปลดโหลด', detail: 'ถอดปลั๊กเครื่องใช้ไฟฟ้าในโซนที่ดับออกให้หมด', image_placeholder: '[รูป: การถอดปลั๊ก]' }, { heading: '2. ยกเบรกเกอร์', detail: 'ลองยกเบรกเกอร์ขึ้นใหม่', image_placeholder: '[รูป: ยกเบรกเกอร์]' }, { heading: '3. เช็คอุปกรณ์', detail: 'เสียบปลั๊กทีละชิ้น ถ้าตัวไหนเสียบแล้วตัดแสดงว่าตัวนั้นเสีย', image_placeholder: '[รูป: ทดสอบอุปกรณ์]' }] },
             'ไฟฟ้า - หลอดไฟกระพริบ': { title: 'หลอดไฟกระพริบ', description: 'อาจเกิดจากหลอดเสื่อมหรือขั้วหลวม', safety_warning: 'ปิดสวิตช์ไฟและรอให้เย็นก่อนจับ', steps: [{ heading: '1. หมุนให้แน่น', detail: 'ลองหมุนหลอดไฟให้แน่นขึ้น', image_placeholder: '[รูป: หมุนหลอดไฟ]' }, { heading: '2. เปลี่ยนหลอด', detail: 'หากยังกระพริบให้ลองเปลี่ยนหลอดใหม่', image_placeholder: '[รูป: เปลี่ยนหลอด]' }] },
             'ไฟฟ้า - เต้ารับมีรอยไหม้': { title: 'เต้ารับมีรอยไหม้', description: 'อันตรายมาก อาจเกิดไฟไหม้', safety_warning: 'ห้ามใช้งานเด็ดขาด แจ้งช่างทันที', steps: [{ heading: '1. หยุดใช้', detail: 'ดึงปลั๊กออกทันทีและห้ามเสียบใหม่', image_placeholder: '[รูป: รอยไหม้ที่เต้ารับ]' }, { heading: '2. แจ้งช่าง', detail: 'กดปุ่มด้านล่างเพื่อค้นหาช่างเปลี่ยนเต้ารับ', image_placeholder: '[รูป: โทรหาช่าง]' }] },
             'ไฟฟ้า - ไฟดับเฉพาะจุด': { title: 'ไฟดับเฉพาะจุด', description: 'อาจเกิดจากเบรกเกอร์ย่อยทริป', safety_warning: 'ตรวจสอบด้วยความระมัดระวัง', steps: [{ heading: '1. ดูตู้ไฟ', detail: 'ตรวจสอบตู้คอนซูมเมอร์ว่ามีลูกย่อยตัวไหนตกลงมาหรือไม่', image_placeholder: '[รูป: ตู้คอนซูมเมอร์]' }, { heading: '2. สับขึ้น', detail: 'ดันลูกย่อยนั้นขึ้น', image_placeholder: '[รูป: ดันสวิตช์]' }] },
             'ไฟฟ้า - เปลี่ยนหลอดไฟ': { title: 'วิธีเปลี่ยนหลอดไฟ', description: 'เปลี่ยนหลอดเองได้ง่ายๆ', safety_warning: 'ต้องปิดสวิตช์ก่อนเสมอ', steps: [{ heading: '1. เตรียมบันได', detail: 'ใช้บันไดที่มั่นคง', image_placeholder: '[รูป: บันได]' }, { heading: '2. เปลี่ยนหลอด', detail: 'หมุนทวนเข็มเพื่อถอด ตามเข็มเพื่อใส่', image_placeholder: '[รูป: การหมุนหลอด]' }] },
-
-            // หมวดประปา (5 อาการ)
             'ประปา - น้ำไม่ไหล': { title: 'น้ำไม่ไหล', description: 'ตรวจสอบเบื้องต้นก่อนเรียกช่าง', safety_warning: 'ระวังลื่น', steps: [{ heading: '1. ดูมิเตอร์', detail: 'ดูมิเตอร์หน้าบ้านว่าหมุนไหม หรือวาล์วถูกปิดหรือไม่', image_placeholder: '[รูป: มิเตอร์น้ำ]' }, { heading: '2. เช็คปั๊ม', detail: 'ดูว่าปั๊มน้ำทำงานหรือมีเสียงผิดปกติไหม', image_placeholder: '[รูป: ปั๊มน้ำ]' }] },
             'ประปา - ก๊อกน้ำหยด': { title: 'ก๊อกน้ำหยด', description: 'ยางประเก็นอาจเสื่อม', safety_warning: 'ปิดวาล์วน้ำก่อนซ่อม', steps: [{ heading: '1. ปิดวาล์ว', detail: 'ปิดวาล์วน้ำใต้อ่าง', image_placeholder: '[รูป: วาล์วน้ำ]' }, { heading: '2. เปลี่ยนยาง', detail: 'ถอดหัวก๊อกและเปลี่ยนยางซีลภายใน', image_placeholder: '[รูป: ยางซีล]' }] },
             'ประปา - ท่อตัน': { title: 'ท่อระบายน้ำตัน', description: 'น้ำระบายช้าหรือท่วมขัง', safety_warning: 'ระวังสารเคมีกัดผิวหนัง', steps: [{ heading: '1. ใช้ที่ปั๊ม', detail: 'ใช้ยางปั๊มท่อปั๊มเป็นจังหวะ', image_placeholder: '[รูป: ยางปั๊ม]' }, { heading: '2. น้ำยาล้างท่อ', detail: 'เทน้ำยาล้างท่อตันทิ้งไว้ 30 นาทีแล้วล้างออก', image_placeholder: '[รูป: น้ำยาล้างท่อ]' }] },
             'ประปา - สายชำระรั่ว': { title: 'สายชำระรั่ว', description: 'น้ำหยดจากหัวฉีด', safety_warning: '-', steps: [{ heading: '1. เปลี่ยนหัว', detail: 'หมุนหัวเก่าออกแล้วนำหัวใหม่มาใส่', image_placeholder: '[รูป: หัวชำระ]' }] },
             'ประปา - ปั๊มน้ำทำงานตลอด': { title: 'ปั๊มน้ำไม่ตัด', description: 'อาจมีจุดรั่วภายในบ้าน', safety_warning: 'ระวังค่าไฟพุ่งสูง', steps: [{ heading: '1. ปิดก๊อกให้หมด', detail: 'ปิดน้ำทุกจุดในบ้าน', image_placeholder: '[รูป: ก๊อกน้ำ]' }, { heading: '2. ฟังเสียง', detail: 'ถ้าปั๊มยังทำงานแสดงว่ามีท่อรั่วซึม ต้องเรียกช่าง', image_placeholder: '[รูป: ฟังเสียงปั๊ม]' }] },
-
-            // หมวดโครงสร้าง
             'โครงสร้าง - หลังคารั่ว': { title: 'หลังคารั่ว', description: 'ตรวจสอบรอยรั่วเบื้องต้น', safety_warning: 'อันตรายจากการตกที่สูง ห้ามปีนเองถ้าฝนตก', steps: [{ heading: '1. หาจุดรั่ว', detail: 'สังเกตฝ้าเพดานที่มีรอยน้ำ', image_placeholder: '[รูป: รอยน้ำบนฝ้า]' }] },
             'โครงสร้าง - ผนังร้าวลายงา': { title: 'ผนังร้าวลายงา', description: 'รอยร้าวเล็กๆ บนผิวปูน', safety_warning: '-', steps: [{ heading: '1. โป๊วผนัง', detail: 'ใช้วัสดุอุดรอยร้าวทาปิด', image_placeholder: '[รูป: การโป๊วผนัง]' }] },
             'โครงสร้าง - ประตูตก': { title: 'ประตู/หน้าต่างปิดยาก', description: 'บานพับอาจหลวม', safety_warning: 'ระวังหนีบนิ้ว', steps: [{ heading: '1. ขันน็อต', detail: 'ใช้ไขควงขันน็อตบานพับให้แน่น', image_placeholder: '[รูป: ขันน็อตบานพับ]' }] },
             'โครงสร้าง - กระเบื้องร่อน': { title: 'กระเบื้องหลุดร่อน', description: 'ปูนกาวเสื่อมสภาพ', safety_warning: 'ระวังสะดุด', steps: [{ heading: '1. เลาะออก', detail: 'งัดแผ่นเดิมออก ทำความสะอาด', image_placeholder: '[รูป: พื้นที่เลาะกระเบื้อง]' }, { heading: '2. ติดกาว', detail: 'ใช้กาวตะปูหรือปูนกาวติดกลับเข้าไป', image_placeholder: '[รูป: ทากาว]' }] },
             'โครงสร้าง - รางน้ำฝนตัน': { title: 'รางน้ำฝนตัน', description: 'น้ำล้นรางเวลาฝนตก', safety_warning: 'ระวังตกจากบันได', steps: [{ heading: '1. ทำความสะอาด', detail: 'ตักใบไม้และเศษขยะออกจากราง', image_placeholder: '[รูป: ใบไม้ในราง]' }] },
-
-            // หมวดเครื่องใช้ไฟฟ้า
             'เครื่องใช้ไฟฟ้า - แอร์ไม่เย็น': { title: 'แอร์ไม่เย็น', description: 'ฝุ่นอาจตัน', safety_warning: 'สับเบรกเกอร์แอร์ลงก่อน', steps: [{ heading: '1. ล้างฟิลเตอร์', detail: 'ถอดแผ่นกรองฝุ่นมาล้างน้ำแล้วตากให้แห้ง', image_placeholder: '[รูป: แผ่นกรองแอร์]' }] },
             'เครื่องใช้ไฟฟ้า - พัดลมหมุนช้า': { title: 'พัดลมหมุนช้า', description: 'ฝุ่นจับแกนมอเตอร์', safety_warning: 'ถอดปลั๊กก่อน', steps: [{ heading: '1. ทำความสะอาด', detail: 'ถอดตะแกรงและใบพัดมาล้าง ดึงเส้นผมที่พันแกนออก', image_placeholder: '[รูป: แกนพัดลม]' }] },
             'เครื่องใช้ไฟฟ้า - ตู้เย็นไม่เย็น': { title: 'ตู้เย็นไม่เย็น', description: 'ขอบยางเสื่อม', safety_warning: '-', steps: [{ heading: '1. เช็คขอบยาง', detail: 'เอากระดาษสอดแล้วดึง ถ้าดึงง่ายแสดงว่ายางเสื่อม', image_placeholder: '[รูป: เช็คขอบยาง]' }] },
             'เครื่องใช้ไฟฟ้า - ทีวีไม่มีสัญญาณ': { title: 'ทีวีไม่มีสัญญาณ', description: 'สายหลวม', safety_warning: '-', steps: [{ heading: '1. ขยับสาย', detail: 'ขยับสาย HDMI หรือสายเสาอากาศด้านหลัง', image_placeholder: '[รูป: หลังทีวี]' }] },
             'เครื่องใช้ไฟฟ้า - หม้อหุงข้าวไม่ร้อน': { title: 'หม้อหุงข้าวไม่ร้อน', description: 'แผ่นความร้อนสกปรก', safety_warning: 'ถอดปลั๊กก่อน', steps: [{ heading: '1. เช็ดทำความสะอาด', detail: 'เช็ดก้นหม้อและแผ่นความร้อนให้สะอาดแห้งสนิท', image_placeholder: '[รูป: แผ่นความร้อน]' }] },
-
-            // หมวดเครือข่าย
             'เครือข่าย - เน็ตใช้งานไม่ได้': { title: 'เน็ตใช้งานไม่ได้', description: 'สัญญาณขาดหาย', safety_warning: '-', steps: [{ heading: '1. ปิด-เปิดใหม่', detail: 'ถอดปลั๊ก Router ทิ้งไว้ 10 วินาที แล้วเสียบใหม่', image_placeholder: '[รูป: Router]' }] },
             'เครือข่าย - Wi-Fi สัญญาณอ่อน': { title: 'Wi-Fi สัญญาณอ่อน', description: 'จุดอับสัญญาณ', safety_warning: '-', steps: [{ heading: '1. ย้ายตำแหน่ง', detail: 'วาง Router ในที่โล่ง สูงจากพื้น', image_placeholder: '[รูป: การวาง Router]' }] },
             'เครือข่าย - ลืมรหัสผ่าน': { title: 'ลืมรหัส Wi-Fi', description: 'ต้องการดูรหัสเดิม', safety_warning: '-', steps: [{ heading: '1. ดูใต้เครื่อง', detail: 'พลิกดูสติ๊กเกอร์ใต้ Router', image_placeholder: '[รูป: สติ๊กเกอร์ใต้เครื่อง]' }] },
@@ -259,93 +294,125 @@
             'เครือข่าย - โทรศัพท์บ้านเงียบ': { title: 'โทรศัพท์บ้านไม่มีเสียง', description: 'สายหลุด', safety_warning: '-', steps: [{ heading: '1. เช็คสาย', detail: 'ขยับสายโทรศัพท์ที่ต่อเข้าเครื่องและผนัง', image_placeholder: '[รูป: สายโทรศัพท์]' }] }
         };
 
-        // --- Categories Map ---
         const categoryMap = {
             'ไฟฟ้า': ['ไฟฟ้า - เบรกเกอร์ตัดบ่อย', 'ไฟฟ้า - หลอดไฟกระพริบ', 'ไฟฟ้า - เต้ารับมีรอยไหม้', 'ไฟฟ้า - ไฟดับเฉพาะจุด', 'ไฟฟ้า - เปลี่ยนหลอดไฟ'],
             'ประปา': ['ประปา - น้ำไม่ไหล', 'ประปา - ก๊อกน้ำหยด', 'ประปา - ท่อตัน', 'ประปา - สายชำระรั่ว', 'ประปา - ปั๊มน้ำทำงานตลอด'],
             'โครงสร้าง': ['โครงสร้าง - หลังคารั่ว', 'โครงสร้าง - ผนังร้าวลายงา', 'โครงสร้าง - ประตูตก', 'โครงสร้าง - กระเบื้องร่อน', 'โครงสร้าง - รางน้ำฝนตัน'],
             'เครื่องใช้ไฟฟ้า': ['เครื่องใช้ไฟฟ้า - แอร์ไม่เย็น', 'เครื่องใช้ไฟฟ้า - พัดลมหมุนช้า', 'เครื่องใช้ไฟฟ้า - ตู้เย็นไม่เย็น', 'เครื่องใช้ไฟฟ้า - ทีวีไม่มีสัญญาณ', 'เครื่องใช้ไฟฟ้า - หม้อหุงข้าวไม่ร้อน'],
             'เครือข่าย': ['เครือข่าย - เน็ตใช้งานไม่ได้', 'เครือข่าย - Wi-Fi สัญญาณอ่อน', 'เครือข่าย - ลืมรหัสผ่าน', 'เครือข่าย - สาย LAN ขาด', 'เครือข่าย - โทรศัพท์บ้านเงียบ'],
-            'อื่นๆ': [] // จะเด้งไปหน้า form เลย
+            'อื่นๆ': []
         };
 
-        // --- SCENE RENDERERS (Restored Rich UI) ---
+        // --- SCENE RENDERERS ---
 
         const homeScreen = `
-            <div class="text-center py-6 animate-fade-in">
-                <h1 class="text-3xl md:text-4xl font-extrabold text-primary-blue mb-2">LocalFIX</h1>
-                <p class="text-lg text-slate-500">ผู้ช่วยประจำบ้านของคุณ (ศรีสะเกษ)</p> 
-            </div>
+            <div class="text-center py-6 animate-fade-in"><h1 class="text-3xl md:text-4xl font-extrabold text-primary-blue mb-2">LocalFIX</h1><p class="text-lg text-slate-500">ผู้ช่วยประจำบ้านของคุณ (ศรีสะเกษ)</p></div>
             <div class="bg-gradient-to-r from-[#003366] to-[#004a93] p-6 md:p-10 rounded-2xl mb-8 shadow-xl text-white relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6 animate-fade-in">
-                <div class="text-center md:text-left z-10 max-w-lg">
-                    <h2 class="text-2xl md:text-3xl font-bold mb-3">พบปัญหาภายในบ้าน?</h2>
-                    <p class="text-slate-100 mb-6 text-base md:text-lg">เรามีคำแนะนำ DIY เบื้องต้น หรือช่วยค้นหาเบอร์โทรช่างและหน่วยงานท้องถิ่นให้คุณได้ทันที</p>
-                    <button onclick="renderScreen('diagnose')" class="w-full md:w-auto bg-[#FFCC00] hover:bg-[#ffdb4d] text-[#003366] font-bold py-3 px-8 rounded-xl transition transform hover:scale-105 shadow-lg text-lg border-2 border-[#FFCC00]">
-                        <i class="fas fa-search-plus mr-2"></i> เริ่มต้นวินิจฉัยปัญหา
-                    </button>
-                </div>
+                <div class="text-center md:text-left z-10 max-w-lg"><h2 class="text-2xl md:text-3xl font-bold mb-3">พบปัญหาภายในบ้าน?</h2><p class="text-slate-100 mb-6 text-base md:text-lg">เรามีคำแนะนำ DIY เบื้องต้น หรือช่วยค้นหาเบอร์โทรช่างและหน่วยงานท้องถิ่นให้คุณได้ทันที</p><button onclick="renderScreen('diagnose')" class="w-full md:w-auto bg-[#FFCC00] hover:bg-[#ffdb4d] text-[#003366] font-bold py-3 px-8 rounded-xl transition transform hover:scale-105 shadow-lg text-lg border-2 border-[#FFCC00]"><i class="fas fa-search-plus mr-2"></i> เริ่มต้นวินิจฉัยปัญหา</button></div>
                 <div class="hidden md:block opacity-20 transform scale-150"><i class="fas fa-house-chimney text-9xl"></i></div>
             </div>
             <div class="mb-4 flex items-center justify-between animate-fade-in"><h3 class="text-xl font-bold text-gray-800 border-l-4 border-yellow-400 pl-3">หมวดหมู่บริการ</h3></div>
-            <div class="grid grid-cols-3 md:grid-cols-6 gap-4 mb-8 animate-fade-in">
-                ${['ไฟฟ้า', 'ประปา', 'โครงสร้าง', 'เครื่องใช้ไฟฟ้า', 'เครือข่าย', 'อื่นๆ'].map((cat, idx) => {
-                    const icons = ['bolt', 'faucet', 'house-crack', 'plug', 'wifi', 'ellipsis'];
-                    const colors = ['amber', 'blue', 'red', 'purple', 'green', 'slate'];
-                    return `<div class="category-icon flex flex-col items-center justify-center p-4 bg-white border border-gray-100 rounded-xl cursor-pointer transition-all duration-300 shadow-sm hover:shadow-md" onclick="renderScreen('diagnosis_detail', {category: '${cat}'})">
-                            <div class="w-12 h-12 md:w-16 md:h-16 rounded-full bg-${colors[idx]}-50 flex items-center justify-center text-${colors[idx]}-500 mb-3 hover:scale-110 transition-transform"><i class="fas fa-${icons[idx]} text-xl md:text-3xl"></i></div>
-                            <span class="text-sm md:text-base font-medium text-gray-700">${cat}</span></div>`;
-                }).join('')}
-            </div>
-            <div class="mt-auto text-center py-6 border-t border-gray-100"><p class="text-xs text-slate-400">© 2024 LocalFIX Service</p></div>
-        `;
+            <div class="grid grid-cols-3 md:grid-cols-6 gap-4 mb-8 animate-fade-in">${['ไฟฟ้า', 'ประปา', 'โครงสร้าง', 'เครื่องใช้ไฟฟ้า', 'เครือข่าย', 'อื่นๆ'].map((cat, idx) => {
+                const icons = ['bolt', 'faucet', 'house-crack', 'plug', 'wifi', 'ellipsis']; const colors = ['amber', 'blue', 'red', 'purple', 'green', 'slate'];
+                return `<div class="category-icon flex flex-col items-center justify-center p-4 bg-white border border-gray-100 rounded-xl cursor-pointer transition-all duration-300 shadow-sm hover:shadow-md" onclick="renderScreen('diagnosis_detail', {category: '${cat}'})"><div class="w-12 h-12 md:w-16 md:h-16 rounded-full bg-${colors[idx]}-50 flex items-center justify-center text-${colors[idx]}-500 mb-3 hover:scale-110 transition-transform"><i class="fas fa-${icons[idx]} text-xl md:text-3xl"></i></div><span class="text-sm md:text-base font-medium text-gray-700">${cat}</span></div>`;
+            }).join('')}</div>
+            <div class="mt-auto text-center py-6 border-t border-gray-100"><p class="text-xs text-slate-400">© 2024 LocalFIX Service</p></div>`;
 
         const diagnoseScreen = `
-            <div class="max-w-5xl mx-auto animate-fade-in">
-                <h2 class="text-2xl md:text-3xl font-bold mb-6 text-primary-blue text-center md:text-left">เลือกประเภทปัญหาของคุณ</h2>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-                    ${['งานไฟฟ้า', 'งานประปา', 'โครงสร้าง', 'เครื่องใช้ไฟฟ้า', 'อินเทอร์เน็ต', 'อื่นๆ'].map((cat, idx) => {
-                        const icons = ['bolt', 'faucet', 'house-chimney-crack', 'blender-phone', 'wifi', 'circle-question'];
-                        const colors = ['amber', 'blue', 'red', 'purple', 'green', 'slate'];
-                        const mapKey = ['ไฟฟ้า', 'ประปา', 'โครงสร้าง', 'เครื่องใช้ไฟฟ้า', 'เครือข่าย', 'อื่นๆ'];
-                        return `<div onclick="renderScreen('diagnosis_detail', {category: '${mapKey[idx]}' })" class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 hover:shadow-lg hover:border-blue-500 cursor-pointer transition flex flex-col items-center text-center justify-center aspect-square md:aspect-[4/3] group"><div class="w-16 h-16 rounded-full bg-${colors[idx]}-50 flex items-center justify-center mb-4 group-hover:bg-${colors[idx]}-100 transition"><i class="fas fa-${icons[idx]} text-3xl md:text-4xl text-${colors[idx]}-500"></i></div><span class="text-lg md:text-xl font-bold text-gray-700">${cat}</span><span class="text-xs text-blue-500 mt-2 opacity-0 group-hover:opacity-100 transition">คลิกเพื่อเลือก</span></div>`;
-                    }).join('')}
-                </div>
-            </div>
-        `;
+            <div class="max-w-5xl mx-auto animate-fade-in"><h2 class="text-2xl md:text-3xl font-bold mb-6 text-primary-blue text-center md:text-left">เลือกประเภทปัญหาของคุณ</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">${['งานไฟฟ้า', 'งานประปา', 'โครงสร้าง', 'เครื่องใช้ไฟฟ้า', 'อินเทอร์เน็ต', 'อื่นๆ'].map((cat, idx) => {
+                const icons = ['bolt', 'faucet', 'house-chimney-crack', 'blender-phone', 'wifi', 'circle-question']; const colors = ['amber', 'blue', 'red', 'purple', 'green', 'slate']; const mapKey = ['ไฟฟ้า', 'ประปา', 'โครงสร้าง', 'เครื่องใช้ไฟฟ้า', 'เครือข่าย', 'อื่นๆ'];
+                return `<div onclick="renderScreen('diagnosis_detail', {category: '${mapKey[idx]}' })" class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 hover:shadow-lg hover:border-blue-500 cursor-pointer transition flex flex-col items-center text-center justify-center aspect-square md:aspect-[4/3] group"><div class="w-16 h-16 rounded-full bg-${colors[idx]}-50 flex items-center justify-center mb-4 group-hover:bg-${colors[idx]}-100 transition"><i class="fas fa-${icons[idx]} text-3xl md:text-4xl text-${colors[idx]}-500"></i></div><span class="text-lg md:text-xl font-bold text-gray-700">${cat}</span><span class="text-xs text-blue-500 mt-2 opacity-0 group-hover:opacity-100 transition">คลิกเพื่อเลือก</span></div>`;
+            }).join('')}</div></div>`;
 
-        // 3. RELEVANT AGENCIES
         const relevantAgenciesScreen = () => `
-            <div class="max-w-5xl mx-auto animate-fade-in">
-                <h2 class="text-2xl md:text-3xl font-bold mb-6 text-primary-blue">ติดต่อหน่วยงานที่เกี่ยวข้อง</h2>
-                <h3 class="text-xl font-bold mb-4 text-gray-700 border-l-4 border-yellow-400 pl-3">หน่วยงานภาครัฐ</h3>
-                <div class="grid md:grid-cols-2 gap-4 mb-8">${governmentAgencies.map(ag => `<div class="provider-card bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex items-start gap-4 h-full cursor-pointer"><img src="${ag.logo_url}" class="w-16 h-16 rounded-lg object-cover shadow-sm border border-gray-100 shrink-0"><div class="flex-grow"><div class="flex justify-between items-start"><h3 class="font-bold text-lg text-primary-blue line-clamp-1">${ag.name}</h3><span class="text-xs font-semibold bg-blue-100 text-blue-800 px-2 py-1 rounded-full whitespace-nowrap">ราชการ</span></div><p class="text-sm text-gray-600 mt-1"><i class="fas fa-location-dot text-yellow-500 w-4"></i> ${ag.address}</p><p class="text-sm text-gray-600"><i class="fas fa-phone text-yellow-500 w-4"></i> ${ag.phone}</p><div class="mt-3 flex gap-2"><button class="flex-1 bg-green-50 text-green-700 text-xs font-bold py-2 rounded hover:bg-green-100 border border-green-200 transition"><i class="fas fa-phone mr-1"></i> โทรออก</button><button class="flex-1 bg-blue-50 text-blue-700 text-xs font-bold py-2 rounded hover:bg-blue-100 border border-blue-200 transition"><i class="fas fa-map mr-1"></i> แผนที่</button></div></div></div>`).join('')}</div>
-                <h3 class="text-xl font-bold mb-4 text-gray-700 border-l-4 border-blue-400 pl-3">เอกชน/ร้านค้า</h3>
-                <div class="grid md:grid-cols-2 gap-4">${privateShops.map(ag => `<div class="provider-card bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex items-start gap-4 h-full cursor-pointer"><img src="${ag.logo_url}" class="w-16 h-16 rounded-lg object-cover shadow-sm border border-gray-100 shrink-0"><div class="flex-grow"><h3 class="font-bold text-lg text-primary-blue">${ag.name}</h3><p class="text-sm text-gray-600 mt-1"><i class="fas fa-phone text-yellow-500 w-4"></i> ${ag.phone}</p><div class="mt-3 flex gap-2"><button class="flex-1 bg-green-50 text-green-700 text-xs font-bold py-2 rounded hover:bg-green-100 border border-green-200"><i class="fas fa-phone mr-1"></i> โทรออก</button></div></div></div>`).join('')}</div>
-            </div>`;
+            <div class="max-w-5xl mx-auto animate-fade-in"><h2 class="text-2xl md:text-3xl font-bold mb-6 text-primary-blue">ติดต่อหน่วยงานที่เกี่ยวข้อง</h2>
+            <h3 class="text-xl font-bold mb-4 text-gray-700 border-l-4 border-yellow-400 pl-3">หน่วยงานภาครัฐ</h3><div class="grid md:grid-cols-2 gap-4 mb-8">${governmentAgencies.map(ag => `<div class="provider-card bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex items-start gap-4 h-full cursor-pointer"><img src="${ag.logo_url}" class="w-16 h-16 rounded-lg object-cover shadow-sm border border-gray-100 shrink-0"><div class="flex-grow"><div class="flex justify-between items-start"><h3 class="font-bold text-lg text-primary-blue line-clamp-1">${ag.name}</h3><span class="text-xs font-semibold bg-blue-100 text-blue-800 px-2 py-1 rounded-full whitespace-nowrap">ราชการ</span></div><p class="text-sm text-gray-600 mt-1"><i class="fas fa-location-dot text-yellow-500 w-4"></i> ${ag.address}</p><p class="text-sm text-gray-600"><i class="fas fa-phone text-yellow-500 w-4"></i> ${ag.phone}</p><div class="mt-3 flex gap-2"><button class="flex-1 bg-green-50 text-green-700 text-xs font-bold py-2 rounded hover:bg-green-100 border border-green-200 transition"><i class="fas fa-phone mr-1"></i> โทรออก</button><button class="flex-1 bg-blue-50 text-blue-700 text-xs font-bold py-2 rounded hover:bg-blue-100 border border-blue-200 transition"><i class="fas fa-map mr-1"></i> แผนที่</button></div></div></div>`).join('')}</div>
+            <h3 class="text-xl font-bold mb-4 text-gray-700 border-l-4 border-blue-400 pl-3">เอกชน/ร้านค้า</h3><div class="grid md:grid-cols-2 gap-4">${privateShops.map(ag => `<div class="provider-card bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex items-start gap-4 h-full cursor-pointer"><img src="${ag.logo_url}" class="w-16 h-16 rounded-lg object-cover shadow-sm border border-gray-100 shrink-0"><div class="flex-grow"><h3 class="font-bold text-lg text-primary-blue">${ag.name}</h3><p class="text-sm text-gray-600 mt-1"><i class="fas fa-phone text-yellow-500 w-4"></i> ${ag.phone}</p><div class="mt-3 flex gap-2"><button class="flex-1 bg-green-50 text-green-700 text-xs font-bold py-2 rounded hover:bg-green-100 border border-green-200"><i class="fas fa-phone mr-1"></i> โทรออก</button></div></div></div>`).join('')}</div></div>`;
 
-        // 4. ADMIN DASHBOARD
-        const adminDashboardScreen = `
+        // 4. ADMIN DASHBOARD (UPDATED)
+        const renderAdminDashboard = () => {
+            const reportList = REPORTS_DATABASE.map(report => `
+                <div class="bg-white p-4 border border-gray-200 rounded-lg shadow-sm hover:bg-gray-50 flex justify-between items-center mb-2">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm font-bold text-gray-700">${report.id}</span>
+                            <span class="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">${report.type}</span>
+                        </div>
+                        <h4 class="font-bold text-primary-blue mt-1">${report.title}</h4>
+                        <p class="text-xs text-gray-500">โดย: ${report.user} • ${report.date}</p>
+                    </div>
+                    <button onclick="renderScreen('admin_report_detail', {id: '${report.id}'})" class="bg-white border border-gray-300 text-gray-700 text-sm px-3 py-1 rounded hover:bg-gray-100">
+                        ดูรายละเอียด
+                    </button>
+                </div>
+            `).join('');
+
+            return `
             <div class="animate-fade-in">
                 <div class="flex justify-between items-center mb-6 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
                     <div><h2 class="text-2xl font-bold text-primary-blue">Dashboard ผู้ดูแลระบบ</h2><p class="text-gray-500 text-sm">สถานะ: <span class="text-green-600 font-bold">Online</span> (Super Admin)</p></div>
                     <button onclick="handleLogout()" class="bg-red-50 text-red-600 px-4 py-2 rounded-lg hover:bg-red-100 transition font-bold text-sm"><i class="fas fa-sign-out-alt mr-2"></i>ออกจากระบบ</button>
                 </div>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                    <div class="bg-blue-600 text-white p-6 rounded-2xl shadow-lg admin-stat-card cursor-pointer"><div class="text-4xl font-bold mb-1">12</div><div class="text-sm opacity-90">รอตรวจสอบ</div></div>
-                    <div class="bg-green-500 text-white p-6 rounded-2xl shadow-lg admin-stat-card cursor-pointer"><div class="text-4xl font-bold mb-1">45</div><div class="text-sm opacity-90">แก้ไขแล้ว</div></div>
-                    <div class="bg-orange-500 text-white p-6 rounded-2xl shadow-lg admin-stat-card cursor-pointer"><div class="text-4xl font-bold mb-1">8</div><div class="text-sm opacity-90">กำลังดำเนินการ</div></div>
-                    <div class="bg-slate-700 text-white p-6 rounded-2xl shadow-lg admin-stat-card cursor-pointer"><div class="text-4xl font-bold mb-1">65</div><div class="text-sm opacity-90">รวมทั้งหมด</div></div>
-                </div>
+                
+                <!-- Lists -->
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-                    <div class="p-4 border-b border-gray-100 flex justify-between items-center"><h3 class="font-bold text-gray-800">รายการล่าสุด</h3><button class="text-blue-600 text-sm hover:underline">ดูทั้งหมด</button></div>
-                    <div class="divide-y divide-gray-100">
-                        <div class="p-4 flex justify-between items-center hover:bg-gray-50 transition"><div><p class="font-bold text-gray-800">ไฟดับทั้งซอย 5</p><p class="text-xs text-gray-500">โดย: user01 • 10 นาทีที่แล้ว</p></div><span class="status-badge bg-orange-100 text-orange-700">รอตรวจสอบ</span></div>
-                        <div class="p-4 flex justify-between items-center hover:bg-gray-50 transition"><div><p class="font-bold text-gray-800">ท่อประปาแตก</p><p class="text-xs text-gray-500">โดย: user02 • 1 ชม. ที่แล้ว</p></div><span class="status-badge bg-blue-100 text-blue-700">ส่งเรื่องแล้ว</span></div>
+                    <div class="p-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center"><h3 class="font-bold text-gray-800">รายการแจ้งซ่อมทั้งหมด (${REPORTS_DATABASE.length})</h3></div>
+                    <div class="p-4 bg-gray-100 min-h-[300px]">
+                        ${reportList || '<p class="text-center text-gray-500 py-10">ไม่มีรายการแจ้งซ่อม</p>'}
                     </div>
                 </div>
             </div>`;
+        }
 
-        // 5. AGENCY DASHBOARD
+        // 5. ADMIN REPORT DETAIL SCREEN (NEW)
+        const renderAdminDetail = (reportId) => {
+            const report = REPORTS_DATABASE.find(r => r.id === reportId);
+            if (!report) return `<div class="p-10 text-center">ไม่พบข้อมูล</div>`;
+
+            return `
+            <div class="animate-fade-in max-w-3xl mx-auto">
+                <button onclick="renderScreen('admin_dashboard')" class="mb-4 text-gray-600 hover:text-primary-blue flex items-center gap-1"><i class="fas fa-arrow-left"></i> กลับไปหน้า Dashboard</button>
+                <div class="bg-white p-6 rounded-2xl shadow-md border border-gray-200">
+                    <div class="flex justify-between items-start mb-6 border-b pb-4">
+                        <div>
+                            <h2 class="text-2xl font-bold text-primary-blue">${report.title}</h2>
+                            <p class="text-sm text-gray-500">รหัสอ้างอิง: ${report.id}</p>
+                        </div>
+                        <span class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm font-bold">${report.status.toUpperCase()}</span>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-6 mb-6">
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase font-bold">ผู้แจ้ง</p>
+                            <p class="font-medium">${report.user}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase font-bold">เวลาที่แจ้ง</p>
+                            <p class="font-medium">${report.date}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase font-bold">ประเภท</p>
+                            <p class="font-medium">${report.type}</p>
+                        </div>
+                    </div>
+
+                    <div class="mb-6">
+                        <p class="text-xs text-gray-500 uppercase font-bold mb-2">รายละเอียดปัญหา</p>
+                        <div class="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                            ${report.desc}
+                        </div>
+                    </div>
+
+                    <div class="flex gap-3 pt-4 border-t">
+                        <button onclick="alert('อัปเดตสถานะเป็น กำลังดำเนินการ')" class="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">รับเรื่อง / กำลังดำเนินการ</button>
+                        <button onclick="alert('อัปเดตสถานะเป็น เสร็จสิ้น')" class="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700">แจ้งเสร็จสิ้น</button>
+                    </div>
+                </div>
+            </div>`;
+        }
+
+        // 6. AGENCY DASHBOARD (Kept same)
         const agencyDashboardScreen = `
             <div class="animate-fade-in">
                 <div class="flex justify-between items-center mb-6 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
@@ -361,63 +428,21 @@
                         <p class="text-sm text-gray-600"><i class="fas fa-map-marker-alt text-red-500 w-4"></i> หมู่ 3 ถ.หลักเมือง</p>
                         <div class="mt-4 flex gap-3"><button class="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 font-bold text-sm shadow">รับงานนี้</button><button class="bg-gray-100 text-gray-600 px-4 py-2 rounded-lg hover:bg-gray-200 font-bold text-sm">รายละเอียด</button></div>
                     </div>
-                    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition border-l-4 border-l-blue-500">
-                        <div class="flex justify-between mb-2"><span class="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-1 rounded">ทั่วไป</span><span class="text-xs text-gray-400">#2023002</span></div>
-                        <h4 class="font-bold text-lg text-gray-800 mb-1">ขอขยายเขตไฟฟ้า</h4>
-                        <p class="text-sm text-gray-600"><i class="fas fa-map-marker-alt text-red-500 w-4"></i> ซอย 5 หลังโรงเรียน</p>
-                        <div class="mt-4 flex gap-3"><button class="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 font-bold text-sm shadow">ปิดงานแล้ว</button><button class="bg-gray-100 text-gray-600 px-4 py-2 rounded-lg hover:bg-gray-200 font-bold text-sm">รายละเอียด</button></div>
-                    </div>
                 </div>
             </div>`;
 
-        // Missing function - Added here
+        // Other Screens (User)
+        const diagnosisDetailScreen = (category) => {
+            const problems = categoryMap[category] || [];
+            if (problems.length === 0) return `<div class="max-w-4xl mx-auto animate-fade-in"><h2 class="text-2xl font-bold mb-4 text-primary-blue">เลือกอาการ (${category})</h2><div class="space-y-3"><div onclick="renderScreen('report_issue_form', {problem: 'ปัญหาอื่นๆ - ${category}'})" class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-lg hover:border-blue-500 cursor-pointer transition flex items-center gap-4 h-full group"><div class="bg-blue-50 p-4 rounded-full text-blue-600 shrink-0 group-hover:bg-blue-600 group-hover:text-white transition"><i class="fas fa-edit"></i></div><div><h3 class="font-bold text-gray-800 text-lg">แจ้งปัญหาทั่วไป</h3><p class="text-sm text-gray-500 mt-1">กรอกรายละเอียดให้เจ้าหน้าที่ทราบ</p></div></div></div></div>`;
+            return `<div class="max-w-4xl mx-auto animate-fade-in"><h2 class="text-2xl font-bold mb-4 text-primary-blue">เลือกอาการ (${category})</h2><div class="grid md:grid-cols-2 gap-4">${problems.map(key => { const solution = manualSolutions[key]; const title = solution ? solution.title : key; return `<div onclick="renderScreen('advice_screen', {problem: '${key}'})" class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-lg hover:border-blue-500 cursor-pointer transition flex items-center gap-4 h-full group"><div class="bg-blue-50 p-4 rounded-full text-blue-600 shrink-0 group-hover:bg-blue-600 group-hover:text-white transition"><i class="fas fa-chevron-right"></i></div><div><h3 class="font-bold text-gray-800 text-lg">${title}</h3><p class="text-sm text-gray-500 mt-1">คลิกเพื่อดูวิธีแก้ไข</p></div></div>`; }).join('')}<div onclick="renderScreen('report_issue_form', {problem: 'ปัญหาอื่นๆ - ${category}'})" class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-lg hover:border-blue-500 cursor-pointer transition flex items-center gap-4 h-full group"><div class="bg-slate-50 p-4 rounded-full text-slate-600 shrink-0 group-hover:bg-slate-600 group-hover:text-white transition"><i class="fas fa-question"></i></div><div><h3 class="font-bold text-gray-800 text-lg">อาการอื่นๆ / ไม่แน่ใจ</h3><p class="text-sm text-gray-500 mt-1">แจ้งเจ้าหน้าที่โดยตรง</p></div></div></div></div>`;
+        };
+
         const adviceScreen = (problemKey) => {
             const solution = manualSolutions[problemKey] || { title: 'ปัญหาอื่นๆ', description: 'โปรดแจ้งให้เราทราบ', safety_warning: 'ระมัดระวัง', steps: [] };
             const isReport = problemKey.includes('ปัญหาอื่นๆ');
-            const stepsHtml = solution.steps.map((step, i) => `
-                <div class="diy-step flex flex-col h-full p-4 mb-4 bg-gray-50 rounded-lg">
-                    <h3 class="font-bold text-lg text-primary-blue mb-2">ขั้นตอนที่ ${i+1}: ${step.heading}</h3>
-                    <p class="text-gray-700 leading-relaxed mb-4 flex-grow">${step.detail}</p>
-                    <div class="bg-white rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center h-40 relative overflow-hidden group">
-                        <span class="text-sm text-gray-400">${step.image_placeholder}</span>
-                    </div>
-                </div>
-            `).join('');
-
+            const stepsHtml = solution.steps.map((step, i) => `<div class="diy-step flex flex-col h-full p-4 mb-4 bg-gray-50 rounded-lg"><h3 class="font-bold text-lg text-primary-blue mb-2">ขั้นตอนที่ ${i+1}: ${step.heading}</h3><p class="text-gray-700 leading-relaxed mb-4 flex-grow">${step.detail}</p><div class="bg-white rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center h-40 relative overflow-hidden group"><span class="text-sm text-gray-400">${step.image_placeholder}</span></div></div>`).join('');
             return `<div class="max-w-5xl mx-auto animate-fade-in pb-10"><div class="bg-white p-5 md:p-8 rounded-2xl shadow-sm border border-gray-100"><h2 class="text-2xl md:text-3xl font-bold text-primary-blue mb-4">${solution.title}</h2><div class="bg-red-50 border-l-4 border-red-500 p-4 rounded mb-6"><p class="text-red-800 font-bold">คำเตือนความปลอดภัย</p><p class="text-sm text-red-700">${solution.safety_warning}</p></div><p class="text-gray-600 mb-6 text-lg">${solution.description}</p><div class="grid md:grid-cols-2 gap-6 mb-8">${stepsHtml}</div><div class="text-center pt-6 border-t border-gray-100"><button onclick="${isReport ? `renderScreen('report_issue_form', {problem: '${problemKey}'})` : `renderScreen('relevant_agencies')`}" class="bg-[#FFCC00] hover:bg-[#ffdb4d] text-[#003366] font-bold py-3 px-8 rounded-xl shadow-lg transition transform hover:-translate-y-1">${isReport ? 'เขียนใบคำร้อง' : 'ค้นหาช่าง / หน่วยงาน'}</button></div></div></div>`;
-        };
-
-        const diagnosisDetailScreen = (category) => {
-            const problems = categoryMap[category] || [];
-            if (problems.length === 0) {
-                return `<div class="max-w-4xl mx-auto animate-fade-in"><h2 class="text-2xl font-bold mb-4 text-primary-blue">เลือกอาการ (${category})</h2><div class="space-y-3"><div onclick="renderScreen('report_issue_form', {problem: 'ปัญหาอื่นๆ - ${category}'})" class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-lg hover:border-blue-500 cursor-pointer transition flex items-center gap-4 h-full group"><div class="bg-blue-50 p-4 rounded-full text-blue-600 shrink-0 group-hover:bg-blue-600 group-hover:text-white transition"><i class="fas fa-edit"></i></div><div><h3 class="font-bold text-gray-800 text-lg">แจ้งปัญหาทั่วไป</h3><p class="text-sm text-gray-500 mt-1">กรอกรายละเอียดให้เจ้าหน้าที่ทราบ</p></div></div></div></div>`;
-            }
-            return `
-                <div class="max-w-4xl mx-auto animate-fade-in">
-                    <h2 class="text-2xl font-bold mb-4 text-primary-blue">เลือกอาการ (${category})</h2>
-                    <div class="grid md:grid-cols-2 gap-4">
-                        ${problems.map(key => {
-                            const solution = manualSolutions[key];
-                            const title = solution ? solution.title : key;
-                            return `
-                                <div onclick="renderScreen('advice_screen', {problem: '${key}'})" class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-lg hover:border-blue-500 cursor-pointer transition flex items-center gap-4 h-full group">
-                                    <div class="bg-blue-50 p-4 rounded-full text-blue-600 shrink-0 group-hover:bg-blue-600 group-hover:text-white transition">
-                                        <i class="fas fa-chevron-right"></i>
-                                    </div>
-                                    <div>
-                                        <h3 class="font-bold text-gray-800 text-lg">${title}</h3>
-                                        <p class="text-sm text-gray-500 mt-1">คลิกเพื่อดูวิธีแก้ไข</p>
-                                    </div>
-                                </div>
-                            `;
-                        }).join('')}
-                        <div onclick="renderScreen('report_issue_form', {problem: 'ปัญหาอื่นๆ - ${category}'})" class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-lg hover:border-blue-500 cursor-pointer transition flex items-center gap-4 h-full group">
-                            <div class="bg-slate-50 p-4 rounded-full text-slate-600 shrink-0 group-hover:bg-slate-600 group-hover:text-white transition"><i class="fas fa-question"></i></div>
-                            <div><h3 class="font-bold text-gray-800 text-lg">อาการอื่นๆ / ไม่แน่ใจ</h3><p class="text-sm text-gray-500 mt-1">แจ้งเจ้าหน้าที่โดยตรง</p></div>
-                        </div>
-                    </div>
-                </div>
-            `;
         };
 
         const reportFormScreen = (problemKey) => `
@@ -455,7 +480,7 @@
                 </div>
             </div>`;
 
-        // Routing Logic (Fixed ReferenceError)
+        // Routing Logic
         function renderHeader(title) {
             if (navigationHistory.length > 1) { 
                 appHeader.innerHTML = `<span class="back-button" onclick="goBack()"><i class="fas fa-arrow-left"></i></span> ${title}`; 
@@ -481,7 +506,8 @@
                 case 'report_issue_form': html = reportFormScreen(data.problem||''); title = 'แบบฟอร์ม'; break;
                 case 'profile': html = profileLandingScreen; title = 'บัญชี'; break;
                 case 'login': html = loginScreen; title = 'เข้าสู่ระบบ'; break;
-                case 'admin_dashboard': html = adminDashboardScreen; title = 'Admin Portal'; break;
+                case 'admin_dashboard': html = renderAdminDashboard(); title = 'Admin Portal'; break;
+                case 'admin_report_detail': html = renderAdminDetail(data.id); title = 'รายละเอียดแจ้งซ่อม'; break; // New Detail Route
                 case 'agency_dashboard': html = agencyDashboardScreen; title = 'Agency Portal'; break;
                 default: html = homeScreen;
             }
